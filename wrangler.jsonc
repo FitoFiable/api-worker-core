@@ -40,7 +40,7 @@
       "name": "fitofiable-api-worker-core-staging",
       "vars": {
         "API_URL": "https://staging.api.fitofiable.com",
-        "OIDC_CLIENT_ID": "54korru7ikoepu6vlkekc9bf7o",
+        "OIDC_CLIENT_ID": "3s8qgl22rrt60m0g7587287am2",
         "OIDC_REDIRECT_URI": "https://staging.api.fitofiable.com/auth/callback",
         "OIDC_SCOPES": "email openid",
         "FRONTEND_ORIGIN": "https://staging.fitofiable.com",
