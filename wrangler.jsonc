@@ -1,0 +1,90 @@
+{
+  "name": "fitofiable-api-worker-core-local",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-08-25",  
+
+  // do not add vars. I will add those manually.
+  "vars": {
+    "API_URL": "http://localhost:8002",
+    "OIDC_CLIENT_ID": "54korru7ikoepu6vlkekc9bf7o",
+    "OIDC_REDIRECT_URI": "http://localhost:8002/auth/callback",
+    "OIDC_SCOPES": "profile email openid",
+    "FRONTEND_ORIGIN": "http://localhost:8001",
+    "OIDC_ISSUER": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_p2HgmSBHu",
+    "COGNITO_HOSTED_UI_URL": "https://us-east-1p2hgmsbhu.auth.us-east-1.amazoncognito.com",
+    "API_LAMBDA_URL": "http://localhost:8003"
+  },
+
+  "r2_buckets": [
+    {
+      "binding": "FITOFIABLE_STORAGE",
+      "bucket_name": "fitofiable-storage-core-local"
+    }
+   
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "FITOFIABLE_KV",
+      "id": "fitofiable-kv-core-local" 
+    }
+  ],
+
+  "observability": {
+    "logs": {
+      "enabled": true
+    }
+  },
+
+  "env": {
+    "development": {
+      "name": "fitofiable-api-worker-core-staging",
+      "vars": {
+        "API_URL": "https://staging.api.fitofiable.com",
+        "OIDC_CLIENT_ID": "54korru7ikoepu6vlkekc9bf7o",
+        "OIDC_REDIRECT_URI": "https://staging.api.fitofiable.com/auth/callback",
+        "OIDC_SCOPES": "profile email openid",
+        "FRONTEND_ORIGIN": "https://staging.fitofiable.com",
+        "OIDC_ISSUER": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_p2HgmSBHu",
+        "COGNITO_HOSTED_UI_URL": "https://us-east-1p2hgmsbhu.auth.us-east-1.amazoncognito.com",
+        "API_LAMBDA_URL": "https://6svt8ht11m.execute-api.us-east-1.amazonaws.com/Prod"
+      },
+      "r2_buckets": [
+        {
+          "binding": "FITOFIABLE_R2",
+          "bucket_name": "fitofiable-r2-core-development"
+        }
+      ],
+      "kv_namespaces": [
+        {
+          "binding": "FITOFIABLE_KV",
+          "id": "75e899d8a1d248ad9b81aa07742c7d0d" // fitofiable-kv-core-development
+        }
+      ]
+    },
+    "production": {
+      "name": "fitofiable-api-worker-core-production",
+      "vars": {
+        "API_URL": "https://api.fitofiable.com",
+        "OIDC_CLIENT_ID": "78bkifm50vrbcce449meu62f6q",
+        "OIDC_REDIRECT_URI": "https://api.fitofiable.com/auth/callback",
+        "OIDC_SCOPES": "profile email openid",
+        "FRONTEND_ORIGIN": "https://fitofiable.com",
+        "OIDC_ISSUER": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_rXv4XAlzq",
+        "COGNITO_HOSTED_UI_URL": "https://us-east-1rxv4xalzq.auth.us-east-1.amazoncognito.com",
+        "API_LAMBDA_URL": "https://u122f3xmpf.execute-api.us-east-1.amazonaws.com/Prod"
+      },
+      "r2_buckets": [
+        {
+          "binding": "FITOFIABLE_R2",
+          "bucket_name": "fitofiable-r2-core-production"
+        }
+      ],
+      "kv_namespaces": [
+        {
+          "binding": "FITOFIABLE_KV",
+          "id": "b9d46d387c3f4175907ea839d9bb05af" // fitofiable-kv-core-production
+        }
+      ]
+    }
+  }
+}
