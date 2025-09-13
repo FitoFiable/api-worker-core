@@ -3,7 +3,7 @@ import { Bindings } from './bindings.js'
 import { GoogleGenAI } from "@google/genai";
 import { cors } from 'hono/cors'
 import { generateAllowedOrigins } from './middleware/cors.js'
-import { oidcAuthMiddleware, getAuth, revokeSession, processOAuthCallback } from '@hono/oidc-auth'
+import { oidcAuthMiddleware, getAuth, revokeSession, processOAuthCallback , getAuthorizationServer} from '@hono/oidc-auth'
 
 
 export type Variables = {
@@ -53,11 +53,32 @@ app.get('/auth/callback', async (c) => {
   return processOAuthCallback(c)
 })
 
+
+
+
+app.use('/protected/*', oidcAuthMiddleware())
+
+// Ejemplo de ruta protegida
+app.get("/protected/user", async (c) => {
+  console.log('protected/user')
+  const auth = await getAuth(c)
+  console.log('auth', auth)
+  if (!auth) {
+    return c.json({
+      authUrl: c.env.API_URL + "/login",
+      status: "UNAUTHENTICATED"
+    }, 401)
+  }
+  console.log('auth', auth)
+  return c.json( { userID: auth?.sub}, 200)
+})
+
 // login es donde se redirige al usuario al login de Cognito
 app.use('/login', oidcAuthMiddleware())
 app.get("/login", async (c) => {
   const auth = await getAuth(c)
   console.log('auth', auth)
+  
   const redirectTo = c.req.query('redirect_to')
   if (redirectTo) {
     return c.redirect(redirectTo)
@@ -65,16 +86,6 @@ app.get("/login", async (c) => {
   else {
     return c.redirect(c.env.FRONTEND_ORIGIN)
   }
-})
-
-// Todas las rutas protegidas deben estar dentro de este middleware
-app.use('/protected/*', oidcAuthMiddleware())
-
-// Ejemplo de ruta protegida
-app.get("/protected/user", async (c) => {
-  const auth = await getAuth(c)
-  console.log('auth', auth)
-  return c.json({ userID: auth?.sub})
 })
 
 app.get("/", async (c) => {
