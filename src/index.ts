@@ -85,9 +85,7 @@ app.get("/protected/user", async (c) => {
 // login es donde se redirige al usuario al login de Cognito
 app.use('/login-get-redirect-url', oidcAuthMiddleware())
 app.get('/login-get-redirect-url', async (c) => {
-  const auth = await getAuth(c)
-  console.log('auth', auth)
-  return c.json({ authUrl: auth?.authUrl }, 200)
+  return c.json({ text: "login-get-redirect-url" }, 200)
 })
 
 app.get("/login", async (c) => {
@@ -98,7 +96,10 @@ app.get("/login", async (c) => {
     const response = await fetch(c.env.API_URL + "/login-get-redirect-url", {
       method: "GET",
       redirect: "manual"
+
     });
+
+    console.log('response', response)
     const loginUrl = response.headers.get("Location");
     console.log('loginUrl', loginUrl);
     console.log('c.req.query("lang")', c.req.query('lang'));
