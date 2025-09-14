@@ -32,6 +32,8 @@ app.use('*', cors({
   allowHeaders: ['Content-Type']
 }))
 
+
+
 // logout es donde se redirige al usuario al deslogeo de Cognito
 app.get('/logout', async (c) => {
   await revokeSession(c)
@@ -86,7 +88,9 @@ app.get("/login", async (c) => {
   console.log('auth', auth)
   if (!auth) {
 
-    const response = await fetch(c.env.API_URL + "/login-get-redirect-url");
+    const response = await fetch(c.env.API_URL + "/login-get-redirect-url", {
+      method: "GET",
+    });
     const loginUrl = response.url;
     console.log('loginUrl', loginUrl);
     console.log('c.req.query("lang")', c.req.query('lang'));
