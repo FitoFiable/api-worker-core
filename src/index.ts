@@ -1,4 +1,4 @@
-import { Hono } from 'hono'
+import { Context, Hono, Next } from 'hono'
 import { Bindings } from './bindings.js'
 import { GoogleGenAI } from "@google/genai";
 import { cors } from 'hono/cors'
@@ -82,47 +82,102 @@ app.get("/protected/user", async (c) => {
   return c.json( { userID: auth?.sub}, 200)
 })
 
-// login es donde se redirige al usuario al login de Cognito
-app.use('/login-get-redirect-url', oidcAuthMiddleware())
-app.get('/login-get-redirect-url', async (c) => {
-  return c.json({ text: "login-get-redirect-url" }, 200)
-})
 
-app.get("/login", async (c) => {
-  const auth = await getAuth(c)
-  console.log('auth', auth)
-  if (!auth) {
 
-    const response = await fetch(c.env.API_URL + "/login-get-redirect-url", {
-      method: "GET",
-      redirect: "manual"
+const interceptRedirect = () => {
+  return async (c: Context, next: Next) => {
 
-    });
-
-    console.log('response', response)
-    const loginUrl = response.headers.get("Location");
-    console.log('loginUrl', loginUrl);
-    console.log('c.req.query("lang")', c.req.query('lang'));
-    if (!loginUrl?.includes("amazoncognito")) {
-      return c.redirect(c.env.FRONTEND_ORIGIN);
-    }
-    if (c.req.query('lang')) {
-      return c.redirect(loginUrl + "&lang=" + c.req.query('lang'));
-    } else {
-      return c.redirect(loginUrl);
+    let lang = c.req.query('lang')
+    if (!lang) {
+      lang = 'en'
     }
 
+
+    await next()
+
+    console.log("interceptRedirect --------------------->")
+    console.log('c.res', c.res)
+    // Only care about redirect responses
+    if (c.res.status >= 300 && c.res.status < 400) {
+      const location = c.res.headers.get('Location')
+      if (location) {
+        // Add lang=es at the end (preserving existing query params)
+        const url = new URL(location, 'http://dummy-base') // base avoids errors on relative URLs
+        url.searchParams.set('lang', lang)
+        // console.log("url", url)
+        console.log("url.toString()", url.toString())
+        
+        // Replace the response with updated Location
+        // c.res = new Response(null, {
+        //   status: c.res.status,
+        //   headers: {
+        //     ...Object.fromEntries(c.res.headers),
+        //     location: url.toString(),
+        //   },
+        // })
+        // return c.res
+        return c.redirect(url.toString(), 302)
+        console.log("New Response --------------------->")
+        console.log("c.res", c.res)
+      }
+    }
   }
-  return c.redirect(c.env.FRONTEND_ORIGIN);
-  
-  // const redirectTo = c.req.query('redirect_to')
-  // if (redirectTo) {
-  //   return c.redirect(redirectTo)
-  // }
-  // else {
-  //   return c.redirect(c.env.FRONTEND_ORIGIN)
-  // }
+
+  console.log("interceptRedirect ---------------------> end")
+}
+
+app.use('/login', interceptRedirect())
+app.use('/login', oidcAuthMiddleware())
+app.get('/login', async (c) => {
+  const redirectTo = c.req.query('redirect_to')
+  if (redirectTo) {
+    return c.redirect(redirectTo)
+  }
+  else {
+    return c.redirect(c.env.FRONTEND_ORIGIN)
+  }
 })
+// // login es donde se redirige al usuario al login de Cognito
+// app.use('/login-get-redirect-url', oidcAuthMiddleware())
+// app.get('/login-get-redirect-url', async (c) => {
+//   return c.json({ text: "login-get-redirect-url" }, 200)
+// })
+
+// app.get("/login", async (c) => {
+//   const auth = await getAuth(c)
+//   console.log('auth', auth)
+//   if (!auth) {
+
+//     const response = await fetch(c.env.API_URL + "/login-get-redirect-url", {
+//       method: "GET",
+//       redirect: "manual"
+
+//     });
+
+//     console.log('response of login-get-redirect-url', response)
+//     const loginUrl = response.headers.get("Location");
+//     console.log('loginUrl', loginUrl);
+//     console.log('c.req.query("lang")', c.req.query('lang'));
+//     if (!loginUrl?.includes("amazoncognito")) {
+//       return c.redirect(c.env.FRONTEND_ORIGIN);
+//     }
+//     if (c.req.query('lang')) {
+//       return c.redirect(loginUrl + "&lang=" + c.req.query('lang'));
+//     } else {
+//       return c.redirect(loginUrl);
+//     }
+
+//   }
+//   return c.redirect(c.env.FRONTEND_ORIGIN);
+  
+//   // const redirectTo = c.req.query('redirect_to')
+//   // if (redirectTo) {
+//   //   return c.redirect(redirectTo)
+//   // }
+//   // else {
+//   //   return c.redirect(c.env.FRONTEND_ORIGIN)
+//   // }
+// })
 
 app.get("/", async (c) => {
   return c.json({ message: "API funcionando correctamente" })
