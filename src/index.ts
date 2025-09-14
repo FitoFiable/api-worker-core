@@ -89,6 +89,16 @@ const interceptRedirect = () => {
     let lang = c.req.query('lang')
     if (!lang) {
       lang = 'en'
+    }else{
+      const supportedLanguages = ['en', 'es', 'fr', 'de', 'it', 'pt']
+      if (supportedLanguages.includes(lang)) {
+        lang = lang.toLowerCase()
+        if (lang == 'pt') {
+          lang = 'pt-BR'
+        }
+      }else{
+        lang = 'en'
+      }
     }
 
     await next()
