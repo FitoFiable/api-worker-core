@@ -20,16 +20,23 @@ const app = new Hono<honoContext>()
 app.use('*', cors({
   origin: (origin, c) => {
     const frontendOrigin = c.env.FRONTEND_ORIGIN
+    const cognitoOrigin = c.env.COGNITO_HOSTED_UI_URL
     if (!frontendOrigin) {
       throw new Error('FRONTEND_ORIGIN environment variable is not set')
     }
+    if (!cognitoOrigin) {
+      throw new Error('COGNITO_HOSTED_UI_URL environment variable is not set')
+    }
     const allowedOrigins = generateAllowedOrigins(frontendOrigin)
+    allowedOrigins.push(cognitoOrigin)
+    
+    // Return the matching origin if it's allowed, otherwise return null
     if (!origin) return allowedOrigins[0]
-    return allowedOrigins.includes(origin) ? origin : allowedOrigins[0]
+    return allowedOrigins.includes(origin) ? origin : null
   },
   credentials: true,
-  allowMethods: ['GET','POST','DELETE','OPTIONS'],
-  allowHeaders: ['Content-Type']
+  allowMethods: ['GET', 'POST', 'DELETE', 'OPTIONS', "REDIRECT","PATCH"],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Access-Control-Request-Method', 'Access-Control-Request-Headers']
 }))
 
 
