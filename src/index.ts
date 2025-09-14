@@ -56,7 +56,7 @@ app.get('/auth/callback', async (c) => {
 
 
 
-app.use('/protected/*', oidcAuthMiddleware())
+// app.use('/protected/*', oidcAuthMiddleware())
 
 // Ejemplo de ruta protegida
 app.get("/protected/user", async (c) => {
@@ -74,18 +74,38 @@ app.get("/protected/user", async (c) => {
 })
 
 // login es donde se redirige al usuario al login de Cognito
-app.use('/login', oidcAuthMiddleware())
+app.use('/login-get-redirect-url', oidcAuthMiddleware())
+app.get('/login-get-redirect-url', async (c) => {
+  const auth = await getAuth(c)
+  console.log('auth', auth)
+  return c.json({ authUrl: auth?.authUrl }, 200)
+})
+
 app.get("/login", async (c) => {
   const auth = await getAuth(c)
   console.log('auth', auth)
+  if (!auth) {
+
+    const response = await fetch(c.env.API_URL + "/login-get-redirect-url");
+    const loginUrl = response.url;
+    console.log('loginUrl', loginUrl);
+    console.log('c.req.query("lang")', c.req.query('lang'));
+    if (c.req.query('lang')) {
+      return c.redirect(loginUrl + "&lang=" + c.req.query('lang'));
+    } else {
+      return c.redirect(loginUrl);
+    }
+
+  }
+  return c.redirect(c.env.FRONTEND_ORIGIN);
   
-  const redirectTo = c.req.query('redirect_to')
-  if (redirectTo) {
-    return c.redirect(redirectTo)
-  }
-  else {
-    return c.redirect(c.env.FRONTEND_ORIGIN)
-  }
+  // const redirectTo = c.req.query('redirect_to')
+  // if (redirectTo) {
+  //   return c.redirect(redirectTo)
+  // }
+  // else {
+  //   return c.redirect(c.env.FRONTEND_ORIGIN)
+  // }
 })
 
 app.get("/", async (c) => {
