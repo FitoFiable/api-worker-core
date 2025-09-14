@@ -97,10 +97,14 @@ app.get("/login", async (c) => {
 
     const response = await fetch(c.env.API_URL + "/login-get-redirect-url", {
       method: "GET",
+      redirect: "manual"
     });
-    const loginUrl = response.url;
+    const loginUrl = response.headers.get("Location");
     console.log('loginUrl', loginUrl);
     console.log('c.req.query("lang")', c.req.query('lang'));
+    if (!loginUrl?.includes("amazoncognito")) {
+      return c.redirect(c.env.FRONTEND_ORIGIN);
+    }
     if (c.req.query('lang')) {
       return c.redirect(loginUrl + "&lang=" + c.req.query('lang'));
     } else {
