@@ -4,6 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 import { cors } from 'hono/cors'
 import { generateAllowedOrigins } from './middleware/cors.js'
 import { oidcAuthMiddleware, getAuth, revokeSession, processOAuthCallback , getAuthorizationServer} from '@hono/oidc-auth'
+import media from './media/media.js'
 
 
 export type Variables = {
@@ -135,6 +136,8 @@ app.get("/", async (c) => {
   return c.json({ message: "API funcionando correctamente" })
 })
 
+// Mount media router
+app.route('/media', media)
 
 export default app
 

@@ -1,8 +1,8 @@
 export type Bindings = {
 
     // BINDINGS DE SERVICIOS DE CLOUDFLARE: SE REGISTRAN EN EL ARCHIVO wrangler.jsonc y se crean en la UI de Cloudflare
-    CARTI_R2: R2Bucket
-    CARTI_KV: KVNamespace
+    FITOFIABLE_STORAGE: R2Bucket
+    FITOFIABLE_KV: KVNamespace
     
     // VARIABLES: SE REGISTRAN EN EL ARCHIVO wrangler.jsonc
     FRONTEND_ORIGIN: string
