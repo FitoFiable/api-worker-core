@@ -1,18 +1,19 @@
 import { Context } from "hono";
 import { honoContext } from "@/index.js";
 import { SyncCodeService, SyncCodeValidationResult } from "./syncCodeService.js";
-
+import { PhoneService } from "./phoneService.js";
 
 
 export class User {
     private readonly c: Context<honoContext>
     public readonly userId: string
     private readonly syncCodeService: SyncCodeService
-
+    private readonly phoneService: PhoneService
     constructor(c: Context<honoContext>, userId: string) {
         this.c = c
         this.userId = userId
         this.syncCodeService = new SyncCodeService(c)
+        this.phoneService = new PhoneService(c)
     }
 
     async getUser() {
@@ -86,6 +87,7 @@ export class User {
             if (validationResult.isValid) {
                 console.log('Validation successful, updating user data')
                 user.phoneVerified = true
+                await this.phoneService.assingUserToPhoneNumber(user.phoneNumber, this.userId)
                 await this.c.env.FITOFIABLE_KV.put(`user/${this.userId}`, JSON.stringify(user))
                 console.log('Phone verified, user data:', user)
                 console.log('Revoking sync code')

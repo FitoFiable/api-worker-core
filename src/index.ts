@@ -10,12 +10,14 @@ import { User } from './user/user.js'
 import eventHandlerRoutes from './eventHandler/eventHandlerRoutes.js'
 import { WabaSender } from './eventHandler/waba/index.js'
 import { SyncCodeService } from './user/syncCodeService.js'
+import { PhoneService } from './user/phoneService.js';
 
 export type Variables = {
   gemini: GoogleGenAI
   user: User
   WabaSender: WabaSender
   SyncCodeService: SyncCodeService
+  PhoneService: PhoneService
 }
 
 export type honoContext = { Bindings: Bindings, Variables: Variables }

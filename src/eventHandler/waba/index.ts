@@ -10,6 +10,7 @@ import { sendAnyAvailableType } from "./sendTypes.js"
 import { modelMessageSchema } from "ai"
 import { prepareVerifiedMessage } from "./PrepareMessage/verified.js"
 import { prepareUnableToVerify } from "./PrepareMessage/unableToVerify.js"
+import { prepareHelloVerified } from "./PrepareMessage/helloVerified.js"
 
 
 export type requestMetadata = {
@@ -71,12 +72,16 @@ export class WabaSender {
         return this.sendMessage(prepareGettingStarted(this.to, this.lang, context))
     }
 
-    async sendVerifiedMessage(context: requestMetadata) {
+    async sendVerifiedMessage(context: requestMetadata & { userData?: any }) {
         return this.sendMessage(prepareVerifiedMessage(this.to, this.lang, context))
     }
 
     async unableToVerifyPhone(context: requestMetadata) {
         return this.sendMessage(prepareUnableToVerify(this.to, this.lang, context))
+    }
+
+    async sendHelloVerified(context: requestMetadata & { userData?: any }) {
+        return this.sendMessage(prepareHelloVerified(this.to, this.lang, context))
     }
 
 

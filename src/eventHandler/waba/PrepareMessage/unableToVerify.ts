@@ -1,9 +1,20 @@
 import { sendAnyAvailableType } from "../sendTypes.js"
 import { requestMetadata } from "../index.js"
+import { unableToVerify as en } from "@/i18n/en/wabaMessages/unableToVerify.js"
+import { unableToVerify as es } from "@/i18n/es/wabaMessages/unableToVerify.js"
+import { unableToVerify as fr } from "@/i18n/fr/wabaMessages/unableToVerify.js"
+import { unableToVerify as de } from "@/i18n/de/wabaMessages/unableToVerify.js"
+import { unableToVerify as it } from "@/i18n/it/wabaMessages/unableToVerify.js"
+import { unableToVerify as pt } from "@/i18n/pt/wabaMessages/unableToVerify.js"
+import type { UnableToVerify } from "@/i18n/types/wabaMessages/unableToVerify.js"
 
 export const prepareUnableToVerify = (to: string, lang: string, context: requestMetadata): sendAnyAvailableType[] => {
-    const title = 'I could not verify your code 😕'
-    const help = `Please check the code and try again here: ${context.frontendUrl}/${lang}`
+    const dictionary: Record<string, UnableToVerify> = { en, es, fr, de, it, pt }
+    const normalized = (lang || 'en').toLowerCase()
+    const t = dictionary[normalized] || en
+
+    const url = `${context.frontendUrl}/${lang}`
+    const help = t.help.replace('{{url}}', url)
 
     return [
         {
@@ -14,7 +25,7 @@ export const prepareUnableToVerify = (to: string, lang: string, context: request
         },
         {
             to,
-            message: title,
+            message: t.title,
             replyToMessageId: context.replyToMessageId,
         },
         {
