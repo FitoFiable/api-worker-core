@@ -5,10 +5,11 @@ import { cors } from 'hono/cors'
 import { generateAllowedOrigins } from './middleware/cors.js'
 import { oidcAuthMiddleware, getAuth, revokeSession, processOAuthCallback , getAuthorizationServer} from '@hono/oidc-auth'
 import media from './media/media.js'
-
-
+import userRoutes from './user/userRoutes.js'
+import { User } from './user/user.js'
 export type Variables = {
   gemini: GoogleGenAI
+  user: User
 }
 
 export type honoContext = { Bindings: Bindings, Variables: Variables }
@@ -66,23 +67,6 @@ app.get('/auth/callback', async (c) => {
 
 
 
-// app.use('/protected/*', oidcAuthMiddleware())
-
-// Ejemplo de ruta protegida
-app.get("/protected/user", async (c) => {
-  console.log('protected/user')
-  const auth = await getAuth(c)
-  console.log('auth', auth)
-  if (!auth) {
-    return c.json({
-      authUrl: c.env.API_URL + "/login",
-      status: "UNAUTHENTICATED"
-    }, 401)
-  }
-  console.log('auth', auth)
-  return c.json( { userID: auth?.sub}, 200)
-})
-
 
 
 const interceptRedirect = () => {
@@ -136,8 +120,15 @@ app.get("/", async (c) => {
   return c.json({ message: "API funcionando correctamente" })
 })
 
+
+
+
+
+
+
 // Mount media router
 app.route('/media', media)
+app.route('/user', userRoutes)
 
 export default app
 
