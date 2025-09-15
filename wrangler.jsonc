@@ -18,7 +18,7 @@
 
   "r2_buckets": [
     {
-      "binding": "FITOFIABLE_STORAGE",
+      "binding": "FITOFIABLE_R2",
       "bucket_name": "fitofiable-storage-core-local"
     }
    

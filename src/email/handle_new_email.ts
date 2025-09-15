@@ -26,7 +26,7 @@ export interface EmailData {
 export const handleNewEmail = async (jsonEmail: EmailData, env: Bindings) => {
     const objectName = `${Date.now()}-${crypto.randomUUID()}.json`
     // Save to R2
-    await env.FITOFIABLE_STORAGE.put("email-received/" + objectName, JSON.stringify(jsonEmail, null, 2), {
+    await env.FITOFIABLE_R2.put("email-received/" + objectName, JSON.stringify(jsonEmail, null, 2), {
         httpMetadata: { contentType: 'application/json' },
     })
 
