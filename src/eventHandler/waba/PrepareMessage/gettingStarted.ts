@@ -6,7 +6,7 @@ import { gettingStarted as it } from "@/i18n/it/wabaMessages/gettingStarted.js"
 import { gettingStarted as pt } from "@/i18n/pt/wabaMessages/gettingStarted.js"
 import { GettingStarted } from "@/i18n/types/wabaMessages/gettingStarted.js"
 import { sendAnyAvailableType } from "../sendTypes.js"
-import { requestMetadata } from "../index.js"
+import { requestMetadata } from "../wabaService.js"
 export const prepareGettingStarted = (to: string, lang: string, context: requestMetadata): sendAnyAvailableType[] => {
     const dictionary: Record<string, GettingStarted> = { en, es, fr, de, it, pt }
     const normalized = (lang || 'en').toLowerCase()

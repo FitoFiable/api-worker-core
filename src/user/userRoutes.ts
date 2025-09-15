@@ -1,6 +1,6 @@
 import { Hono, Next } from 'hono'
 import { getAuth } from '@hono/oidc-auth'
-import { User } from './user.js'
+import { User } from './userMainService.js'
 import { honoContext } from '../index.js'
 
 import { SyncCodeService } from './syncCodeService.js'
@@ -72,6 +72,14 @@ userRoutes.post('/syncCode/revoke', async (c) => {
   await user.revokeSyncCode()
   return c.json({ message: 'Sync code revoked successfully' }, 200)
 })
+
+userRoutes.post('/language', async (c) => {
+  const user = c.get('user') as User
+  const { language } = await c.req.json()
+  await user.setUserLanguage(language)
+  return c.json({ message: 'Language set successfully' }, 200)
+})
+
 
 
 

@@ -6,7 +6,7 @@ import { verified as it } from "@/i18n/it/wabaMessages/verified.js"
 import { verified as pt } from "@/i18n/pt/wabaMessages/verified.js"
 import type { Verified } from "@/i18n/types/wabaMessages/verified.js"
 import { sendAnyAvailableType } from "../sendTypes.js"
-import { requestMetadata } from "../index.js"
+import { requestMetadata } from "../wabaService.js"
 
 // For now reuse GettingStarted types/dictionaries for simplicity; could be specialized later
 type VerifiedContext = requestMetadata & { userData?: any }

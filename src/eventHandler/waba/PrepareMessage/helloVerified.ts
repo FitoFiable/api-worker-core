@@ -1,5 +1,5 @@
 import { sendAnyAvailableType } from "../sendTypes.js"
-import { requestMetadata } from "../index.js"
+import { requestMetadata } from "../wabaService.js"
 
 type HelloVerifiedContext = requestMetadata & {
     userData?: any

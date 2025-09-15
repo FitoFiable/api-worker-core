@@ -1,11 +1,12 @@
 import { Hono, Next } from 'hono'
 import { getAuth } from '@hono/oidc-auth'
 import { honoContext } from '../index.js'
-import {WabaSender} from './waba/index.js'
+import {WabaSender} from './waba/wabaService.js'
 import { Context } from 'hono'
 import { SyncCodeService } from '../user/syncCodeService.js'
-import { User } from '../user/user.js'
+import { User } from '../user/userMainService.js'
 import { PhoneService } from '../user/phoneService.js'
+import { getLanguageByPhoneNumber } from './waba/getLanguageByPhoneNumber.js'
 
 const eventHandlerRoutes = new Hono<honoContext>()
 
@@ -25,7 +26,7 @@ export type StandardizedMessageReceived = {
 
 // Middleware for authenticated users
 eventHandlerRoutes.use('*', async (c, next: Next) => {
-  c.set('WabaSender', new WabaSender("", "fr", c.env.WABA_WORKER_URL))
+  c.set('WabaSender', new WabaSender("", "en", c.env.WABA_WORKER_URL))
   c.set('SyncCodeService', new SyncCodeService(c))
   c.set('PhoneService', new PhoneService(c))
   await next()
@@ -60,10 +61,19 @@ eventHandlerRoutes.post('/standarizedInput', async (c) => {
     const userID = await phoneService.getUserByPhoneNumber(messageReceived.sender)
     
     if (userID) {
-       const user = new User(c, userID)
-       const userData = await user.getUser()
+      const user = new User(c, userID)
+      // check if user has a language
+      const userData = await user.getUser()
+      if (userData.language) {
+        sender.setLang(userData.language)
+      }
        wabaResponse = await sender.sendHelloVerified({userData,replyToMessageId: messageReceived.asociatedMessageId, frontendUrl: c.env.FRONTEND_ORIGIN})
     } else {
+
+      // if no user select language depending on the sender country code
+       const language = getLanguageByPhoneNumber(messageReceived.sender)
+       sender.setLang(language)
+
       if (fiveDigitNumber) {
         const validationResult = await c.get('SyncCodeService').validateSyncCode(fiveDigitNumber.toString(), messageReceived.sender)
         if (validationResult.isValid) {
@@ -71,6 +81,8 @@ eventHandlerRoutes.post('/standarizedInput', async (c) => {
           const verified = await user.verifyPhone(validationResult)
           if (verified) {
             const userData = await user.getUser()
+            // update sender language
+            sender.setLang(userData.language)
             wabaResponse = await sender.sendVerifiedMessage({userData, replyToMessageId: messageReceived.asociatedMessageId, frontendUrl: c.env.FRONTEND_ORIGIN})
           }
         }else {

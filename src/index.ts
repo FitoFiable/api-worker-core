@@ -6,9 +6,9 @@ import { generateAllowedOrigins } from './middleware/cors.js'
 import { oidcAuthMiddleware, getAuth, revokeSession, processOAuthCallback , getAuthorizationServer} from '@hono/oidc-auth'
 import media from './media/media.js'
 import userRoutes from './user/userRoutes.js'
-import { User } from './user/user.js'
+import { User } from './user/userMainService.js'
 import eventHandlerRoutes from './eventHandler/eventHandlerRoutes.js'
-import { WabaSender } from './eventHandler/waba/index.js'
+import { WabaSender } from './eventHandler/waba/wabaService.js'
 import { SyncCodeService } from './user/syncCodeService.js'
 import { PhoneService } from './user/phoneService.js';
 

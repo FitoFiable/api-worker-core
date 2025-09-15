@@ -2,18 +2,36 @@ import { Context } from "hono";
 import { honoContext } from "@/index.js";
 import { SyncCodeService, SyncCodeValidationResult } from "./syncCodeService.js";
 import { PhoneService } from "./phoneService.js";
-
+import { WabaSender } from "@/eventHandler/waba/wabaService.js";
 
 export class User {
     private readonly c: Context<honoContext>
     public readonly userId: string
     private readonly syncCodeService: SyncCodeService
     private readonly phoneService: PhoneService
+    private  wabaSender: WabaSender | null = null
     constructor(c: Context<honoContext>, userId: string) {
         this.c = c
         this.userId = userId
         this.syncCodeService = new SyncCodeService(c)
         this.phoneService = new PhoneService(c)
+        void this.initWabaSender()
+    }
+
+    async initWabaSender(): Promise<WabaSender | null> {
+        const user = await this.getUser()
+
+        if (user.phoneVerified) {
+            if (user.language ) {
+                this.wabaSender = new WabaSender(user.phoneNumber, user.language, this.c.env.WABA_WORKER_URL)
+                return this.wabaSender
+            }
+            else {
+                this.wabaSender = new WabaSender(user.phoneNumber, 'en', this.c.env.WABA_WORKER_URL)
+                return this.wabaSender
+            }
+        }
+        return null
     }
 
     async getUser() {
@@ -35,6 +53,17 @@ export class User {
         const user = await this.getUser()
         user.userName = userName
         await this.c.env.FITOFIABLE_KV.put(`user/${this.userId}`, JSON.stringify(user))
+    }
+
+    async setUserLanguage(language: string) {
+        const user = await this.getUser()
+        user.language = language
+        await this.c.env.FITOFIABLE_KV.put(`user/${this.userId}`, JSON.stringify(user))
+        if (this.wabaSender) {
+            this.wabaSender.setLang(language)
+            this.wabaSender.sendLanguageChanged({userData: user, replyToMessageId: "", frontendUrl: this.c.env.FRONTEND_ORIGIN})
+        }
+        return null
     }
 
     async setPhoneNumber(phoneNumber: string) {

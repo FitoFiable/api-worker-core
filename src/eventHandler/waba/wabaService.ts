@@ -11,6 +11,7 @@ import { modelMessageSchema } from "ai"
 import { prepareVerifiedMessage } from "./PrepareMessage/verified.js"
 import { prepareUnableToVerify } from "./PrepareMessage/unableToVerify.js"
 import { prepareHelloVerified } from "./PrepareMessage/helloVerified.js"
+import { prepareLanguageChanged } from "./PrepareMessage/languageChanged.js"
 
 
 export type requestMetadata = {
@@ -42,8 +43,12 @@ export class WabaSender {
     }
 
     public setLang(lang: string) {
-        this.lang = lang
-
+        const supportedLanguages = ['en', 'es', 'fr', 'de', 'it', 'pt']
+        if (supportedLanguages.includes(lang)) {
+            this.lang = lang
+        } else {
+            this.lang = 'en'
+        }
     }
 
     async sendMessage(messages: sendAnyAvailableType[]) {
@@ -84,6 +89,9 @@ export class WabaSender {
         return this.sendMessage(prepareHelloVerified(this.to, this.lang, context))
     }
 
+    async sendLanguageChanged(context: requestMetadata & { userData?: any }) {
+        return this.sendMessage(prepareLanguageChanged(this.to, this.lang, context))
+    }
 
 }
 
