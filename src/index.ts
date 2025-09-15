@@ -7,6 +7,7 @@ import { oidcAuthMiddleware, getAuth, revokeSession, processOAuthCallback , getA
 import media from './media/media.js'
 import userRoutes from './user/userRoutes.js'
 import { User } from './user/user.js'
+import eventHandlerRoutes from './eventHandler/eventHandlerRoutes.js'
 export type Variables = {
   gemini: GoogleGenAI
   user: User
@@ -129,6 +130,7 @@ app.get("/", async (c) => {
 // Mount media router
 app.route('/media', media)
 app.route('/user', userRoutes)
+app.route('/eventHandler', eventHandlerRoutes)
 
 export default app
 
