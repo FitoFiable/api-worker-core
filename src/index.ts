@@ -11,6 +11,7 @@ import eventHandlerRoutes from './eventHandler/eventHandlerRoutes.js'
 import { WabaSender } from './eventHandler/waba/wabaService.js'
 import { SyncCodeService } from './user/syncCodeService.js'
 import { PhoneService } from './user/phoneService.js';
+import { handleNewEmail } from './email/handle_new_email.js';
 
 export type Variables = {
   gemini: GoogleGenAI
@@ -72,6 +73,13 @@ app.get('/auth/callback', async (c) => {
   return processOAuthCallback(c)
 })
 
+
+
+app.post('/email/email-received', async (c) => {
+  const jsonEmail = await c.req.json()
+  await handleNewEmail(jsonEmail, c.env)
+    return c.text(`Email received`)
+})
 
 
 
