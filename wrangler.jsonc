@@ -48,7 +48,7 @@
         "OIDC_ISSUER": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_p2HgmSBHu",
         "COGNITO_HOSTED_UI_URL": "https://us-east-1p2hgmsbhu.auth.us-east-1.amazoncognito.com",
         "API_LAMBDA_URL": "https://6svt8ht11m.execute-api.us-east-1.amazonaws.com/Prod",
-        "WABA_WORKER_URL": "https://staging-waba.fitofiable.com"
+        "WABA_WORKER_URL": "https://staging.evolwaba.fitofiable.com"
       },
       "r2_buckets": [
         {
@@ -74,7 +74,7 @@
         "OIDC_ISSUER": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_rXv4XAlzq",
         "COGNITO_HOSTED_UI_URL": "https://us-east-1rxv4xalzq.auth.us-east-1.amazoncognito.com",
         "API_LAMBDA_URL": "https://u122f3xmpf.execute-api.us-east-1.amazonaws.com/Prod",
-        "WABA_WORKER_URL": "https://waba.fitofiable.com"
+        "WABA_WORKER_URL": "https://evolwaba.fitofiable.com"
       },
       "r2_buckets": [
         {
