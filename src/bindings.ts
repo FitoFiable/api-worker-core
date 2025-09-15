@@ -13,6 +13,7 @@ export type Bindings = {
     API_URL: string
     COGNITO_HOSTED_UI_URL: string
     API_LAMBDA_URL: string
+    WABA_WORKER_URL: string
     
     
     // SECRETOS: SE DEBEN REGISTRAR MANUALMENTE EN LA UI DE CLOUDFLARE

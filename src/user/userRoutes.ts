@@ -3,6 +3,8 @@ import { getAuth } from '@hono/oidc-auth'
 import { User } from './user.js'
 import { honoContext } from '../index.js'
 
+import { SyncCodeService } from './syncCodeService.js'
+
 const userRoutes = new Hono<honoContext>()
 
 // Middleware for authenticated users
@@ -50,6 +52,27 @@ userRoutes.post('/name', async (c) => {
   await user.setUserName(name)
   return c.json({ message: 'User name set successfully' }, 200)
 })
+
+userRoutes.post('/phone', async (c) => {
+  const user = c.get('user') as User
+  const { phoneNumber } = await c.req.json()
+  await user.setPhoneNumber(phoneNumber)
+  return c.json({ message: 'Phone number set successfully' }, 200)
+})
+
+userRoutes.post('/syncCode/generate', async (c) => {
+  const user = c.get('user') as User
+  const code = await user.createSyncCode()
+  return c.json({ message: 'Sync code generated successfully', code }, 200)
+})
+
+
+userRoutes.post('/syncCode/revoke', async (c) => {
+  const user = c.get('user') as User
+  await user.revokeSyncCode()
+  return c.json({ message: 'Sync code revoked successfully' }, 200)
+})
+
 
 
 

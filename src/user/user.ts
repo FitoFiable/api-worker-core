@@ -1,6 +1,6 @@
 import { Context } from "hono";
 import { honoContext } from "@/index.js";
-import { SyncCodeService } from "./syncCodeService.js";
+import { SyncCodeService, SyncCodeValidationResult } from "./syncCodeService.js";
 
 
 
@@ -16,6 +16,7 @@ export class User {
     }
 
     async getUser() {
+        console.log('Getting user data for user ID:', this.userId)
         let user = await this.c.env.FITOFIABLE_KV.get(`user/${this.userId}`)
         
         if (!user) {
@@ -35,17 +36,68 @@ export class User {
         await this.c.env.FITOFIABLE_KV.put(`user/${this.userId}`, JSON.stringify(user))
     }
 
-    async getSyncCode(): Promise<string> {
-        return await this.syncCodeService.generateSyncCode(this.userId)
+    async setPhoneNumber(phoneNumber: string) {
+        const user = await this.getUser()
+        user.phoneNumber = phoneNumber.replace('+', '') // Remove + from phone number
+        user.lastSyncCode = undefined
+        user.phoneVerified = false
+        await this.c.env.FITOFIABLE_KV.put(`user/${this.userId}`, JSON.stringify(user))
     }
 
-    async validateSyncCode(code: string) {
-        return await this.syncCodeService.validateSyncCode(code)
+    async createSyncCode(): Promise<string> {
+        const user = await this.getUser()
+        if (user.phoneNumber) {
+            if (user.lastSyncCode) {
+                await this.revokeSyncCode()
+            }
+            user.lastSyncCode = await this.syncCodeService.generateSyncCode(this.userId, user.phoneNumber)
+            return user.lastSyncCode
+        } else {
+            throw new Error('Phone number not set')
+        }
     }
 
-    async revokeSyncCode(code: string): Promise<boolean> {
-        return await this.syncCodeService.revokeSyncCode(code)
+    async revokeSyncCode(): Promise<boolean> {
+        const user = await this.getUser()
+        if (user.phoneNumber) {
+            if (user.lastSyncCode) {
+                await this.syncCodeService.revokeSyncCode(user.lastSyncCode, user.phoneNumber)
+                user.lastSyncCode = undefined
+                await this.c.env.FITOFIABLE_KV.put(`user/${this.userId}`, JSON.stringify(user))
+            }
+            return true
+        } else {
+            throw new Error('Phone number not set or last sync code not found')
+        }
     }
 
+    async verifyPhone(validationResult: SyncCodeValidationResult): Promise<boolean> {
+        console.log('Starting phone verification process')
+        const user = await this.getUser()
+        console.log('Retrieved user data:', user)
+        
+        if (user.phoneVerified) {
+            console.log('Phone already verified')
+            return true
+        }
 
+        if (user.phoneNumber) {
+            console.log('Phone number exists, checking validation result')
+            if (validationResult.isValid) {
+                console.log('Validation successful, updating user data')
+                user.phoneVerified = true
+                await this.c.env.FITOFIABLE_KV.put(`user/${this.userId}`, JSON.stringify(user))
+                console.log('Phone verified, user data:', user)
+                console.log('Revoking sync code')
+                await this.revokeSyncCode()
+                return true
+            }
+            else {
+                console.log('Validation failed')
+                return false
+            }
+        }
+        console.log('No phone number found')
+        return false
+    }
 }

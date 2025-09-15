@@ -12,7 +12,8 @@
     "FRONTEND_ORIGIN": "http://localhost:8001",
     "OIDC_ISSUER": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_p2HgmSBHu",
     "COGNITO_HOSTED_UI_URL": "https://us-east-1p2hgmsbhu.auth.us-east-1.amazoncognito.com",
-    "API_LAMBDA_URL": "http://localhost:8003"
+    "API_LAMBDA_URL": "http://localhost:8003",
+    "WABA_WORKER_URL": "http://localhost:8004"
   },
 
   "r2_buckets": [
@@ -46,7 +47,8 @@
         "FRONTEND_ORIGIN": "https://staging.fitofiable.com",
         "OIDC_ISSUER": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_p2HgmSBHu",
         "COGNITO_HOSTED_UI_URL": "https://us-east-1p2hgmsbhu.auth.us-east-1.amazoncognito.com",
-        "API_LAMBDA_URL": "https://6svt8ht11m.execute-api.us-east-1.amazonaws.com/Prod"
+        "API_LAMBDA_URL": "https://6svt8ht11m.execute-api.us-east-1.amazonaws.com/Prod",
+        "WABA_WORKER_URL": "https://staging-waba.fitofiable.com"
       },
       "r2_buckets": [
         {
@@ -71,7 +73,8 @@
         "FRONTEND_ORIGIN": "https://fitofiable.com",
         "OIDC_ISSUER": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_rXv4XAlzq",
         "COGNITO_HOSTED_UI_URL": "https://us-east-1rxv4xalzq.auth.us-east-1.amazoncognito.com",
-        "API_LAMBDA_URL": "https://u122f3xmpf.execute-api.us-east-1.amazonaws.com/Prod"
+        "API_LAMBDA_URL": "https://u122f3xmpf.execute-api.us-east-1.amazonaws.com/Prod",
+        "WABA_WORKER_URL": "https://waba.fitofiable.com"
       },
       "r2_buckets": [
         {

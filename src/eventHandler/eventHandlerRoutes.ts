@@ -1,16 +1,97 @@
 import { Hono, Next } from 'hono'
 import { getAuth } from '@hono/oidc-auth'
 import { honoContext } from '../index.js'
+import {WabaSender} from './waba/index.js'
+import { Context } from 'hono'
+import { SyncCodeService } from '../user/syncCodeService.js'
+import { User } from '../user/user.js'
+
 
 const eventHandlerRoutes = new Hono<honoContext>()
 
+export type StandardizedMessageReceived = {
+    messageId?: string; // Unique identifier for the message if available
+    sender: string; // Sender of the message ejm. phone number
+    receiver: string; // Receiver of the message ejm. phone number
+    timestamp: string; // Timestamp of the message
+    messageType: "text" | "audio" | "image" | "list_reply"; // Type of the message
+    asociatedMessageId?: string; // MessageId of the message that this message is associated with (e.g. a reply to a message)
+    associatedMediaUrl?: string; // URL of the media that this message is associated with (e.g. a reply to a message)
+    content: string; // Content of the message - always a string for simplicity (audio and images are converted to a string)
+  };
+  
+
+
+
 // Middleware for authenticated users
 eventHandlerRoutes.use('*', async (c, next: Next) => {
+  c.set('WabaSender', new WabaSender("", "de", c.env.WABA_WORKER_URL))
+  c.set('SyncCodeService', new SyncCodeService(c))
+
   await next()
 })
 
+
+
 eventHandlerRoutes.post('/standarizedInput', async (c) => {
-  const { message, receiverID } = await c.req.json()
+  try {
+    const messageReceived: StandardizedMessageReceived = await c.req.json()
+    
+    console.log('Received standardized message:', messageReceived)
+    
+    // Get WABA worker URL from environment
+    const wabaWorkerUrl = c.env.WABA_WORKER_URL || 'http://localhost:8004'
+    
+    if (!messageReceived) {
+      return c.json({ error: 'Missing standardizedMessage in request body' }, 400)
+    }
+
+    // Determine message type and call appropriate WABA endpoint
+    let wabaResponse: any
+    
+    
+    const sender = c.get('WabaSender')
+    sender.setRecipient(messageReceived.sender)
+
+    // Check if message contains a 5 digit number and extract it
+    const fiveDigitMatch = messageReceived.content.match(/\b\d{5}\b/)
+    const fiveDigitNumber = fiveDigitMatch ? parseInt(fiveDigitMatch[0]) : null
+
+    if (fiveDigitNumber) {
+      
+      console.log('Five digit number:', fiveDigitNumber)
+      const validationResult = await c.get('SyncCodeService').validateSyncCode(fiveDigitNumber.toString(), messageReceived.sender)
+      if (validationResult.isValid) {
+        console.log('Validation successful, verifying phone', validationResult)
+        const user = new User(c, validationResult.userID!)
+        const verified = await user.verifyPhone(validationResult)
+        if (verified) {
+          wabaResponse = await sender.sendVerifiedMessage({replyToMessageId: messageReceived.asociatedMessageId, frontendUrl: c.env.FRONTEND_ORIGIN})
+        }
+        
+      }else {
+        wabaResponse = await sender.unableToVerifyPhone({replyToMessageId: messageReceived.asociatedMessageId, frontendUrl: c.env.FRONTEND_ORIGIN})
+      }
+      console.log('Validation result:', validationResult)
+    } else {
+      wabaResponse = await sender.sendNoRegisteredMessage({replyToMessageId: messageReceived.asociatedMessageId, frontendUrl: c.env.FRONTEND_ORIGIN})
+    }
+
+    console.log('WABA response:', wabaResponse)
+
+    return c.json({
+      success: true,
+      message: 'Message processed and sent via WABA worker',
+      wabaResponse
+    })
+    
+  } catch (error) {
+    console.error('Error processing standardized message:', error)
+    return c.json({ 
+      error: 'Failed to process standardized message',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, 500)
+  }
 })
 
 export default eventHandlerRoutes

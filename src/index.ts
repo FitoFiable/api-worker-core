@@ -8,9 +8,14 @@ import media from './media/media.js'
 import userRoutes from './user/userRoutes.js'
 import { User } from './user/user.js'
 import eventHandlerRoutes from './eventHandler/eventHandlerRoutes.js'
+import { WabaSender } from './eventHandler/waba/index.js'
+import { SyncCodeService } from './user/syncCodeService.js'
+
 export type Variables = {
   gemini: GoogleGenAI
   user: User
+  WabaSender: WabaSender
+  SyncCodeService: SyncCodeService
 }
 
 export type honoContext = { Bindings: Bindings, Variables: Variables }
