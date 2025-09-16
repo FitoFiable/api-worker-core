@@ -139,6 +139,18 @@ userRoutes.post('/allowedEmails', async (c) => {
   return c.json({ message: 'Allowed emails set successfully' }, 200)
 })
 
+// Danger zone: delete all user data
+userRoutes.delete('/delete', async (c) => {
+  const user = c.get('user') as User
+  try {
+    await user.deleteAllUserData()
+    return c.json({ message: 'All user data deleted' }, 200)
+  } catch (error) {
+    console.error('Error deleting all user data:', error)
+    return c.json({ message: 'Failed to delete user data' }, 500)
+  }
+})
+
 
 
 

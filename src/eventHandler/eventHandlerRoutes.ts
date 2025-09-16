@@ -110,6 +110,7 @@ Rules:
               date: t.date,
               time: t.time,
               location: t.location,
+              mediaUrl: messageReceived.associatedMediaUrl,
               method: t.method ?? 'whatsapp',
               status: t.status ?? 'completed'
             }))

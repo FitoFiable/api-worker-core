@@ -7,6 +7,7 @@ export type UserTransaction = {
   date: string
   time: string
   location?: string
+  mediaUrl?: string
   method: 'card' | 'cash' | 'transfer' | 'whatsapp'
   status: 'completed' | 'pending' | 'failed'
 }

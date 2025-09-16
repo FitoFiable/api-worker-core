@@ -94,6 +94,7 @@ Rules:
                 date: t.date,
                 time: t.time,
                 location: t.location,
+                mediaUrl: undefined,
                 method: t.method ?? 'whatsapp',
                 status: t.status ?? 'completed'
             }))

@@ -24,4 +24,13 @@ export class PhoneService {
         })
         if (!res.ok) throw new Error(`Failed to save phone/user in DO: ${res.status}`)
     }
+
+    async unassignPhoneNumber(phoneNumber: string) {
+        const id = this.c.env.PHONE_DIRECTORY.idFromName(phoneNumber)
+        const stub = this.c.env.PHONE_DIRECTORY.get(id)
+        const res = await stub.fetch('https://do/phone-directory', {
+            method: 'DELETE'
+        })
+        if (!res.ok && res.status !== 404) throw new Error(`Failed to delete phone mapping in DO: ${res.status}`)
+    }
 }

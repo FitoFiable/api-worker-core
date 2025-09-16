@@ -23,6 +23,55 @@ export class User {
         })
     }
 
+    async deleteAllUserData(): Promise<void> {
+        const user = await this.getUser()
+        const userPhone = user.phoneNumber
+
+        // 1) Delete user document from UserDirectory
+        {
+            const id = this.c.env.USER_DIRECTORY.idFromName(this.userId)
+            const stub = this.c.env.USER_DIRECTORY.get(id)
+            await stub.fetch('https://do/user-directory', { method: 'DELETE' })
+        }
+
+        // 2) Delete transactions
+        {
+            const id = this.c.env.TRANSACTION_LOG.idFromName(this.userId)
+            const stub = this.c.env.TRANSACTION_LOG.get(id)
+            await stub.fetch('https://do/transaction-log', { method: 'DELETE' })
+        }
+
+        // 3) Delete events
+        {
+            const id = this.c.env.EVENT_LOG.idFromName(this.userId)
+            const stub = this.c.env.EVENT_LOG.get(id)
+            await stub.fetch('https://do/event-log', { method: 'DELETE' })
+        }
+
+        // 4) Revoke sync code if any
+        try {
+            await this.revokeSyncCode()
+        } catch (_) {
+            // ignore if missing
+        }
+
+        // 5) Remove phone mapping if any
+        if (userPhone) {
+            try {
+                await this.phoneService.unassignPhoneNumber(userPhone)
+            } catch (err) {
+                console.error('Failed to unassign phone mapping during user delete:', err)
+            }
+        }
+
+        // 6) Emit final event (best-effort; after deletes it's fine if it fails)
+        try {
+            await this.emitEvent('user', 'User data deleted', `All data for user ${this.userId} was deleted`)
+        } catch (err) {
+            console.error('Failed to emit delete event:', err)
+        }
+    }
+
     async initWabaSender(): Promise<WabaSender | null> {
         const user = await this.getUser()
 
