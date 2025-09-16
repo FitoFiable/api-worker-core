@@ -85,7 +85,11 @@
           "PhoneDirectoryStaging",
           "SyncCodeRegistryStaging",
           "UserDirectoryStaging"
-        ] }
+        ]
+      },
+      { "tag": "v2-staging-user-directory", "new_classes": [
+        "UserDirectoryStaging"
+      ] }
       ]
     },
     "production": {

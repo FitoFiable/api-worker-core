@@ -24,12 +24,10 @@ export const associatePhoneEmail = async (jsonEmail: EmailData, c: Context<honoC
         return
     }
 
-    // get allowed emails
-    
     const user = new User(c, userID)
     const userData = await user.getUser()
-    const confirmedEmails = userData.setConfirmedEmails
-    if (!confirmedEmails.includes(from)) {
+    const confirmedEmails = userData.confirmedEmails ?? []
+    if (confirmedEmails.includes(from)) {
         return
     }
     await user.setConfirmedEmails([...confirmedEmails, from])
