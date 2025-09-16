@@ -62,12 +62,35 @@ eventHandlerRoutes.post('/standarizedInput', async (c) => {
     
     if (userID) {
       const user = new User(c, userID)
-      // check if user has a language
       const userData = await user.getUser()
-      if (userData.language) {
-        sender.setLang(userData.language)
+      if (userData.phoneVerified) {
+        if (userData.language) {
+          sender.setLang(userData.language)
+        }
+        wabaResponse = await sender.sendHelloVerified({userData,replyToMessageId: messageReceived.asociatedMessageId, frontendUrl: c.env.FRONTEND_ORIGIN})
+      } else {
+        // Treat as unverified
+        const language = getLanguageByPhoneNumber(messageReceived.sender)
+        sender.setLang(language)
+
+        if (fiveDigitNumber) {
+          const validationResult = await c.get('SyncCodeService').validateSyncCode(fiveDigitNumber.toString(), messageReceived.sender)
+          if (validationResult.isValid) {
+            const user = new User(c, validationResult.userID!)
+            const verified = await user.verifyPhone(validationResult)
+            if (verified) {
+              const userData = await user.getUser()
+              // update sender language
+              sender.setLang(userData.language ?? 'en')
+              wabaResponse = await sender.sendVerifiedMessage({userData, replyToMessageId: messageReceived.asociatedMessageId, frontendUrl: c.env.FRONTEND_ORIGIN})
+            }
+          } else {
+            wabaResponse = await sender.unableToVerifyPhone({replyToMessageId: messageReceived.asociatedMessageId, frontendUrl: c.env.FRONTEND_ORIGIN})
+          }
+        } else {
+          wabaResponse = await sender.sendNoRegisteredMessage({replyToMessageId: messageReceived.asociatedMessageId, frontendUrl: c.env.FRONTEND_ORIGIN})
+        }
       }
-       wabaResponse = await sender.sendHelloVerified({userData,replyToMessageId: messageReceived.asociatedMessageId, frontendUrl: c.env.FRONTEND_ORIGIN})
     } else {
 
       // if no user select language depending on the sender country code
@@ -82,7 +105,7 @@ eventHandlerRoutes.post('/standarizedInput', async (c) => {
           if (verified) {
             const userData = await user.getUser()
             // update sender language
-            sender.setLang(userData.language)
+            sender.setLang(userData.language ?? 'en')
             wabaResponse = await sender.sendVerifiedMessage({userData, replyToMessageId: messageReceived.asociatedMessageId, frontendUrl: c.env.FRONTEND_ORIGIN})
           }
         }else {
