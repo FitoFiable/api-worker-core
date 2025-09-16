@@ -5,18 +5,23 @@ export class PhoneService {
     constructor(private readonly c: Context) {}
 
     async getUserByPhoneNumber(phoneNumber: string) {
-        const user = await this.c.env.FITOFIABLE_KV.get(`phone-to-user/${phoneNumber}`)
-        if (!user) {
-            return null
-        }
-        const userData = JSON.parse(user)
-        if (!userData.userID) {
-            return null
-        }
-        return userData.userID
+        const id = this.c.env.PHONE_DIRECTORY.idFromName(phoneNumber)
+        const stub = this.c.env.PHONE_DIRECTORY.get(id)
+        const res = await stub.fetch('https://do/phone-directory')
+        if (res.status === 404) return null
+        if (!res.ok) throw new Error(`PhoneDirectory DO error: ${res.status}`)
+        const data = await res.json() as { userID: string }
+        return data.userID
     }
 
     async assingUserToPhoneNumber(phoneNumber: string, userID: string) {
-        await this.c.env.FITOFIABLE_KV.put(`phone-to-user/${phoneNumber}`, JSON.stringify({ userID , test: 'test' }))
+        const id = this.c.env.PHONE_DIRECTORY.idFromName(phoneNumber)
+        const stub = this.c.env.PHONE_DIRECTORY.get(id)
+        const res = await stub.fetch('https://do/phone-directory', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userID })
+        })
+        if (!res.ok) throw new Error(`Failed to save phone/user in DO: ${res.status}`)
     }
 }

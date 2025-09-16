@@ -32,7 +32,9 @@
 
   "durable_objects": {
     "bindings": [
-      { "name": "EMAIL_DIRECTORY", "class_name": "EmailDirectoryDevelopment" }
+      { "name": "EMAIL_DIRECTORY", "class_name": "EmailDirectoryDevelopment" },
+      { "name": "PHONE_DIRECTORY", "class_name": "PhoneDirectoryDevelopment" },
+      { "name": "SYNC_CODE_REGISTRY", "class_name": "SyncCodeRegistryDevelopment" }
     ]
   },
 
@@ -70,7 +72,9 @@
       ],
       "durable_objects": {
         "bindings": [
-          { "name": "EMAIL_DIRECTORY", "class_name": "EmailDirectoryStaging" }
+          { "name": "EMAIL_DIRECTORY", "class_name": "EmailDirectoryStaging" },
+          { "name": "PHONE_DIRECTORY", "class_name": "PhoneDirectoryStaging" },
+          { "name": "SYNC_CODE_REGISTRY", "class_name": "SyncCodeRegistryStaging" }
         ]
       }
     },
@@ -101,7 +105,9 @@
       ],
       "durable_objects": {
         "bindings": [
-          { "name": "EMAIL_DIRECTORY", "class_name": "EmailDirectoryProduction" }
+          { "name": "EMAIL_DIRECTORY", "class_name": "EmailDirectoryProduction" },
+          { "name": "PHONE_DIRECTORY", "class_name": "PhoneDirectoryProduction" },
+          { "name": "SYNC_CODE_REGISTRY", "class_name": "SyncCodeRegistryProduction" }
         ]
       }
     }

@@ -4,6 +4,8 @@ export type Bindings = {
     FITOFIABLE_R2: R2Bucket
     FITOFIABLE_KV: KVNamespace
     EMAIL_DIRECTORY: DurableObjectNamespace
+    PHONE_DIRECTORY: DurableObjectNamespace
+    SYNC_CODE_REGISTRY: DurableObjectNamespace
     
     // VARIABLES: SE REGISTRAN EN EL ARCHIVO wrangler.jsonc
     FRONTEND_ORIGIN: string

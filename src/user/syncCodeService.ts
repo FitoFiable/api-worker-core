@@ -18,24 +18,35 @@ export class SyncCodeService {
         // Try up to 10 times to find an available code
         for(let i = 0; i < 10; i++) {
             const newCode = Math.floor(10000 + Math.random() * 90000).toString()
-            const existingSync = await this.c.env.FITOFIABLE_KV.get(`syncCode/${newCode}-${phoneNumber}`)
+            const id = this.c.env.SYNC_CODE_REGISTRY.idFromName(`${newCode}-${phoneNumber}`)
+            const stub = this.c.env.SYNC_CODE_REGISTRY.get(id)
+            const existingRes = await stub.fetch('https://do/sync-code')
+            const existingSync = existingRes.status === 404 ? null : await existingRes.text()
             
             if (!existingSync) {
                 // Code doesn't exist, we can use it
-                await this.c.env.FITOFIABLE_KV.put(`syncCode/${newCode}-${phoneNumber}`, JSON.stringify({
-                    userID: userId,
-                    validUntil: Date.now() + 1000 * 60 * 5 // 5 minutes
-                }))
+                await stub.fetch('https://do/sync-code', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userID: userId,
+                        validUntil: Date.now() + 1000 * 60 * 5
+                    })
+                })
                 return newCode
             } else {
                 // Check if existing code is expired
                 const syncData = JSON.parse(existingSync)
                 if (syncData.validUntil < Date.now()) {
                     // Expired code, we can reuse this slot
-                    await this.c.env.FITOFIABLE_KV.put(`syncCode/${newCode}-${phoneNumber}`, JSON.stringify({
-                        userID: userId,
-                        validUntil: Date.now() + 1000 * 60 * 5 // 5 minutes
-                    }))
+                    await stub.fetch('https://do/sync-code', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            userID: userId,
+                            validUntil: Date.now() + 1000 * 60 * 5
+                        })
+                    })
                     return newCode
                 }
                 // If code exists and is valid, continue loop to try another code
@@ -55,7 +66,10 @@ export class SyncCodeService {
             }
 
             // Get sync code from KV store
-            const syncCodeData = await this.c.env.FITOFIABLE_KV.get(`syncCode/${code}-${phoneNumber}`)
+            const id = this.c.env.SYNC_CODE_REGISTRY.idFromName(`${code}-${phoneNumber}`)
+            const stub = this.c.env.SYNC_CODE_REGISTRY.get(id)
+            const res = await stub.fetch('https://do/sync-code')
+            const syncCodeData = res.status === 404 ? null : await res.text()
             console.log(`Sync code data: syncCode/${code}-${phoneNumber}`, syncCodeData)
             if (!syncCodeData) {
                 return { isValid: false, error: 'Sync code not found' }
@@ -78,7 +92,7 @@ export class SyncCodeService {
             const currentTime = Date.now()
             if (syncData.validUntil < currentTime) {
                 // Clean up expired code
-                await this.c.env.FITOFIABLE_KV.delete(`syncCode/${code}-${phoneNumber}`)
+                await stub.fetch('https://do/sync-code', { method: 'DELETE' })
                 return { isValid: false, error: 'Sync code has expired' }
             }
 
@@ -101,7 +115,9 @@ export class SyncCodeService {
 
     async revokeSyncCode(code: string, phoneNumber: string): Promise<boolean> {
         try {
-            await this.c.env.FITOFIABLE_KV.delete(`syncCode/${code}-${phoneNumber}`)
+            const id = this.c.env.SYNC_CODE_REGISTRY.idFromName(`${code}-${phoneNumber}`)
+            const stub = this.c.env.SYNC_CODE_REGISTRY.get(id)
+            await stub.fetch('https://do/sync-code', { method: 'DELETE' })
             return true
         } catch (error) {
             console.error('Error revoking sync code:', error)

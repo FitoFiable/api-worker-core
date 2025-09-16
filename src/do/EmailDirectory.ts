@@ -51,4 +51,8 @@ export class EmailDirectory {
   }
 }
 
+export class EmailDirectoryDevelopment extends EmailDirectory {}
+export class EmailDirectoryStaging extends EmailDirectory {}
+export class EmailDirectoryProduction extends EmailDirectory {}
+
 
