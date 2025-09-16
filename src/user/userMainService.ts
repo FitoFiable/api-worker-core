@@ -257,16 +257,24 @@ export class User {
 
     async addTransactions(transactions: UserTransaction[] | UserTransaction): Promise<{ added: number }>{
         const list = Array.isArray(transactions) ? transactions : [transactions]
+        // Ensure categories exist for user and map all transactions' category to one of them
+        const config = await this.getTransactionsConfig().catch(() => ({ categories: ['Food','Leisure','Education','Other','Emergence'], budgets: {} }))
+        const allowed = new Set((config.categories && config.categories.length ? config.categories : ['Food','Leisure','Education','Other','Emergence']).map(c => c.trim()))
+        const normalizedList = list.map(t => {
+            const cat = (t.category || '').trim()
+            const matched = allowed.has(cat) ? cat : 'Other'
+            return { ...t, category: matched }
+        })
         const id = this.c.env.TRANSACTION_LOG.idFromName(this.userId)
         const stub = this.c.env.TRANSACTION_LOG.get(id)
         const res = await stub.fetch('https://do/transaction-log', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ transactions: list })
+            body: JSON.stringify({ transactions: normalizedList })
         })
         if (!res.ok) throw new Error(`TransactionLog DO error: ${res.status}`)
         const body = await res.json() as { ok: boolean, added: number }
-        await this.emitEvent('payment', 'Transaction registered', `${list.length} transaction(s) added`)
+        await this.emitEvent('payment', 'Transaction registered', `${normalizedList.length} transaction(s) added`)
         return { added: body.added }
     }
 

@@ -85,12 +85,14 @@ Rules:
         }
 
         if (parsed && Array.isArray(parsed.transactions) && parsed.transactions.length > 0) {
+            const userConfig = await user.getTransactionsConfig().catch(() => ({ categories: ['Food','Leisure','Education','Other','Emergence'], budgets: {} }))
+            const allowedCats = new Set((userConfig.categories && userConfig.categories.length ? userConfig.categories : ['Food','Leisure','Education','Other','Emergence']).map(c => c.trim()))
             const normalized: UserTransaction[] = parsed.transactions.map(t => ({
                 id: t.id || crypto.randomUUID(),
                 type: t.type ?? 'expense',
                 amount: (t.type ?? 'expense') === 'expense' ? -Math.abs(t.amount ?? 0) : Math.abs(t.amount ?? 0),
                 description: t.description ?? '',
-                category: t.category ?? 'general',
+                category: allowedCats.has((t.category || '').trim()) ? (t.category || '').trim() : 'Other',
                 date: t.date ?? new Date().toISOString().slice(0, 10),
                 time: t.time ?? new Date().toISOString().slice(11, 16),
                 location: t.location,

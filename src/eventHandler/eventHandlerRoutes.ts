@@ -99,8 +99,19 @@ Rules:
               parsed = JSON.parse(match[0])
             }
           }
+          // Fallback: if standardized message didn't include media URL, try to extract first URL from content
+          const extractFirstUrl = (s: string): string | undefined => {
+            const urlRegex = /(https?:\/\/[^\s)]+|www\.[^\s)]+)/i
+            const m = s.match(urlRegex)
+            if (!m) return undefined
+            const raw = m[0]
+            return raw.startsWith('http') ? raw : `https://${raw}`
+          }
+          const mediaUrlFromMessage = messageReceived.associatedMediaUrl || extractFirstUrl(messageReceived.content)
           if (parsed && Array.isArray(parsed.transactions) && parsed.transactions.length > 0) {
             // normalize fields and sign conventions
+            const userConfig = await user.getTransactionsConfig().catch(() => ({ categories: ['Food','Leisure','Education','Other','Emergence'], budgets: {} }))
+            const allowedCats = new Set((userConfig.categories && userConfig.categories.length ? userConfig.categories : ['Food','Leisure','Education','Other','Emergence']).map(c => c.trim()))
             const normalized: UserTransaction[] = parsed.transactions.map(t => {
               const rawAmount = Number.isFinite(t.amount as number) ? Number(t.amount) : 0
               const inferredType = t.type ?? (rawAmount < 0 ? 'expense' : 'income')
@@ -110,11 +121,11 @@ Rules:
                 type: inferredType,
                 amount: inferredType === 'expense' ? -absAmount : absAmount,
                 description: t.description ?? '',
-                category: t.category ?? 'general',
+                category: allowedCats.has((t.category || '').trim()) ? (t.category || '').trim() : 'Other',
                 date: t.date ?? new Date().toISOString().slice(0,10),
                 time: t.time ?? new Date().toISOString().slice(11,16),
                 location: t.location,
-                mediaUrl: messageReceived.associatedMediaUrl,
+                mediaUrl: mediaUrlFromMessage,
                 method: (t.method ?? 'whatsapp'),
                 status: (t.status ?? 'completed')
               }

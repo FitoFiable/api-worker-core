@@ -15,7 +15,7 @@ export type UserTransaction = {
 type ListResponse = { transactions: UserTransaction[], nextCursor: number | null, total: number }
 type TransactionsConfig = { categories: string[], budgets: Record<string, number> }
 const DEFAULT_CATEGORIES: string[] = [
-  'Food & Dining', 'Transportation', 'Shopping', 'Healthcare', 'Entertainment', 'Bills & Utilities', 'Salary', 'Transfer'
+  'Food', 'Leisure', 'Education', 'Other', 'Emergence'
 ]
 
 class TransactionLogBase {
