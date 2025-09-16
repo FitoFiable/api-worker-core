@@ -1,8 +1,9 @@
-import { Bindings } from "../../bindings.js"
+import { Context } from "hono"
+import { honoContext } from "../../index.js"
 import { EmailData } from "../handle_new_email.js" 
 
 
-export const googleForwardConfirmation = async (jsonEmail: EmailData, env: Bindings) => {
+export const googleForwardConfirmation = async (jsonEmail: EmailData, c: Context<honoContext>) => {
   const { from, body } = jsonEmail
 
   // Must be from Google's forwarding system

@@ -12,6 +12,7 @@ import { WabaSender } from './eventHandler/waba/wabaService.js'
 import { SyncCodeService } from './user/syncCodeService.js'
 import { PhoneService } from './user/phoneService.js';
 import { handleNewEmail } from './email/handle_new_email.js';
+import { EmailService } from './user/emailService.js';
 
 export type Variables = {
   gemini: GoogleGenAI
@@ -19,6 +20,7 @@ export type Variables = {
   WabaSender: WabaSender
   SyncCodeService: SyncCodeService
   PhoneService: PhoneService
+  EmailService: EmailService
 }
 
 export type honoContext = { Bindings: Bindings, Variables: Variables }
@@ -77,7 +79,7 @@ app.get('/auth/callback', async (c) => {
 
 app.post('/email/email-received', async (c) => {
   const jsonEmail = await c.req.json()
-  await handleNewEmail(jsonEmail, c.env)
+  await handleNewEmail(jsonEmail, c)
     return c.text(`Email received`)
 })
 

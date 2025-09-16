@@ -1,6 +1,8 @@
 import { Bindings } from "../bindings.js"
+import { Context } from "hono"
+import { honoContext } from "../index.js"
 import { googleForwardConfirmation } from "./email/google_foward_confirmation.js"
-// import { associatePhoneEmail } from "./email/associate_phone_email.js"
+import { associatePhoneEmail } from "./email/associate_phone_email.js"
 
 export interface EmailData {
     envelope: {
@@ -23,15 +25,15 @@ export interface EmailData {
   }
   
 
-export const handleNewEmail = async (jsonEmail: EmailData, env: Bindings) => {
+export const handleNewEmail = async (jsonEmail: EmailData, c: Context<honoContext>) => {
     const objectName = `${Date.now()}-${crypto.randomUUID()}.json`
     // Save to R2
-    await env.FITOFIABLE_R2.put("email-received/" + objectName, JSON.stringify(jsonEmail, null, 2), {
+    await c.env.FITOFIABLE_R2.put("email-received/" + objectName, JSON.stringify(jsonEmail, null, 2), {
         httpMetadata: { contentType: 'application/json' },
     })
 
-    await googleForwardConfirmation(jsonEmail, env)
-    // await associatePhoneEmail(jsonEmail, env)
+    await googleForwardConfirmation(jsonEmail, c)
+    await associatePhoneEmail(jsonEmail, c)
 
     return
 }
