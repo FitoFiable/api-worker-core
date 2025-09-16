@@ -97,6 +97,9 @@
       ] },
       { "tag": "v3-staging-transaction-log", "new_classes": [
         "TransactionLogStaging"
+      ] },
+      { "tag": "v4-staging-add-event-log", "new_classes": [
+        "EventLogStaging"
       ] }
       ]
     },
@@ -148,6 +151,9 @@
         ] },
         { "tag": "v3-production-transaction-log", "new_classes": [
           "TransactionLogProduction"
+        ] },
+        { "tag": "v4-production-add-event-log", "new_classes": [
+          "EventLogProduction"
         ] }
       ]
     }
