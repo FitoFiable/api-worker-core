@@ -5,18 +5,23 @@ export class EmailService {
     constructor(private readonly c: Context) {}
 
     async getPhoneByEmail(email: string) {
-        const user = await this.c.env.FITOFIABLE_KV.get(`email-to-user/${email}`)
-        if (!user) {
-            return null
-        }
-        const userData = JSON.parse(user)
-        if (!userData.email) {
-            return null
-        }
-        return userData.email
+        const id = this.c.env.EMAIL_DIRECTORY.idFromName(email)
+        const stub = this.c.env.EMAIL_DIRECTORY.get(id)
+        const res = await stub.fetch(`https://do/email-directory`)
+        if (res.status === 404) return null
+        if (!res.ok) throw new Error(`EmailDirectory DO error: ${res.status}`)
+        const data = await res.json() as { email: string, phone: string }
+        return data.phone
     }
 
     async assingPhoneToEmail(email: string, phone: string) {
-        await this.c.env.FITOFIABLE_KV.put(`email-to-user/${email}`, JSON.stringify({ email , phone }))
+        const id = this.c.env.EMAIL_DIRECTORY.idFromName(email)
+        const stub = this.c.env.EMAIL_DIRECTORY.get(id)
+        const res = await stub.fetch(`https://do/email-directory`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, phone })
+        })
+        if (!res.ok) throw new Error(`Failed to save email/phone in DO: ${res.status}`)
     }
 }

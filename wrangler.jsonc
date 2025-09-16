@@ -30,6 +30,12 @@
     }
   ],
 
+  "durable_objects": {
+    "bindings": [
+      { "name": "EMAIL_DIRECTORY", "class_name": "EmailDirectoryDevelopment" }
+    ]
+  },
+
   "observability": {
     "logs": {
       "enabled": true
@@ -61,7 +67,12 @@
           "binding": "FITOFIABLE_KV",
           "id": "75e899d8a1d248ad9b81aa07742c7d0d" // fitofiable-kv-core-development
         }
-      ]
+      ],
+      "durable_objects": {
+        "bindings": [
+          { "name": "EMAIL_DIRECTORY", "class_name": "EmailDirectoryStaging" }
+        ]
+      }
     },
     "production": {
       "name": "fitofiable-api-worker-core-production",
@@ -87,7 +98,12 @@
           "binding": "FITOFIABLE_KV",
           "id": "b9d46d387c3f4175907ea839d9bb05af" // fitofiable-kv-core-production
         }
-      ]
+      ],
+      "durable_objects": {
+        "bindings": [
+          { "name": "EMAIL_DIRECTORY", "class_name": "EmailDirectoryProduction" }
+        ]
+      }
     }
   }
 }

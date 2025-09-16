@@ -13,6 +13,7 @@ import { SyncCodeService } from './user/syncCodeService.js'
 import { PhoneService } from './user/phoneService.js';
 import { handleNewEmail } from './email/handle_new_email.js';
 import { EmailService } from './user/emailService.js';
+export { EmailDirectory } from './do/EmailDirectory.js'
 
 export type Variables = {
   gemini: GoogleGenAI
