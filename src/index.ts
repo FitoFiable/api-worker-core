@@ -17,6 +17,7 @@ export { EmailDirectoryDevelopment, EmailDirectoryStaging, EmailDirectoryProduct
 export { PhoneDirectoryDevelopment, PhoneDirectoryStaging, PhoneDirectoryProduction } from './do/PhoneDirectory.js'
 export { SyncCodeRegistryDevelopment, SyncCodeRegistryStaging, SyncCodeRegistryProduction } from './do/SyncCodeRegistry.js'
 export { UserDirectoryDevelopment, UserDirectoryStaging, UserDirectoryProduction } from './do/UserDirectory.js'
+export { EventLogDevelopment, EventLogStaging, EventLogProduction } from './do/EventLog.js'
 
 export type Variables = {
   gemini: GoogleGenAI

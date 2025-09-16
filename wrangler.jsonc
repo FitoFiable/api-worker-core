@@ -35,7 +35,8 @@
       { "name": "EMAIL_DIRECTORY", "class_name": "EmailDirectoryDevelopment" },
       { "name": "PHONE_DIRECTORY", "class_name": "PhoneDirectoryDevelopment" },
       { "name": "SYNC_CODE_REGISTRY", "class_name": "SyncCodeRegistryDevelopment" },
-      { "name": "USER_DIRECTORY", "class_name": "UserDirectoryDevelopment" }
+      { "name": "USER_DIRECTORY", "class_name": "UserDirectoryDevelopment" },
+      { "name": "EVENT_LOG", "class_name": "EventLogDevelopment" }
     ]
   },
 
@@ -76,7 +77,8 @@
           { "name": "EMAIL_DIRECTORY", "class_name": "EmailDirectoryStaging" },
           { "name": "PHONE_DIRECTORY", "class_name": "PhoneDirectoryStaging" },
           { "name": "SYNC_CODE_REGISTRY", "class_name": "SyncCodeRegistryStaging" },
-          { "name": "USER_DIRECTORY", "class_name": "UserDirectoryStaging" }
+          { "name": "USER_DIRECTORY", "class_name": "UserDirectoryStaging" },
+          { "name": "EVENT_LOG", "class_name": "EventLogStaging" }
         ]
       },
       "migrations": [
@@ -84,7 +86,8 @@
           "EmailDirectoryStaging",
           "PhoneDirectoryStaging",
           "SyncCodeRegistryStaging",
-          "UserDirectoryStaging"
+          "UserDirectoryStaging",
+          "EventLogStaging"
         ]
       },
       { "tag": "v2-staging-user-directory", "new_classes": [
@@ -122,7 +125,8 @@
           { "name": "EMAIL_DIRECTORY", "class_name": "EmailDirectoryProduction" },
           { "name": "PHONE_DIRECTORY", "class_name": "PhoneDirectoryProduction" },
           { "name": "SYNC_CODE_REGISTRY", "class_name": "SyncCodeRegistryProduction" },
-          { "name": "USER_DIRECTORY", "class_name": "UserDirectoryProduction" }
+          { "name": "USER_DIRECTORY", "class_name": "UserDirectoryProduction" },
+          { "name": "EVENT_LOG", "class_name": "EventLogProduction" }
         ]
       },
       "migrations": [
@@ -130,7 +134,8 @@
           "EmailDirectoryProduction",
           "PhoneDirectoryProduction",
           "SyncCodeRegistryProduction",
-          "UserDirectoryProduction"
+          "UserDirectoryProduction",
+          "EventLogProduction"
         ] },
         { "tag": "v2-production-user-directory", "new_classes": [
           "UserDirectoryProduction"

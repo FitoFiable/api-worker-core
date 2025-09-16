@@ -4,6 +4,7 @@ import { User } from './userMainService.js'
 import { honoContext } from '../index.js'
 
 import { SyncCodeService } from './syncCodeService.js'
+import type { UserEvent } from '../do/EventLog.js'
 
 const userRoutes = new Hono<honoContext>()
 
@@ -42,6 +43,26 @@ userRoutes.get('/', async (c) => {
       error: 'Failed to access user data',
       userID: user.userId
     }, 500)
+  }
+})
+
+// Get user events
+userRoutes.get('/events', async (c) => {
+  const user = c.get('user') as User
+  try {
+    const id = c.env.EVENT_LOG.idFromName(user.userId)
+    const stub = c.env.EVENT_LOG.get(id)
+    const limit = c.req.query('limit') ?? '20'
+    const cursor = c.req.query('cursor')
+    const params = new URLSearchParams({ limit })
+    if (cursor) params.set('cursor', cursor)
+    const res = await stub.fetch(`https://do/event-log?${params.toString()}`)
+    if (!res.ok) throw new Error(`Failed to fetch events: ${res.status}`)
+    const body = await res.json() as { events: UserEvent[], nextCursor: number | null, total: number }
+    return c.json(body, 200)
+  } catch (error) {
+    console.error('Error fetching events:', error)
+    return c.json({ events: [], nextCursor: null, total: 0 }, 200)
   }
 })
 

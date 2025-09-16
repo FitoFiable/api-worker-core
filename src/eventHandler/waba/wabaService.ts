@@ -12,6 +12,7 @@ import { prepareVerifiedMessage } from "./PrepareMessage/verified.js"
 import { prepareUnableToVerify } from "./PrepareMessage/unableToVerify.js"
 import { prepareHelloVerified } from "./PrepareMessage/helloVerified.js"
 import { prepareLanguageChanged } from "./PrepareMessage/languageChanged.js"
+import { prepareEventNotification } from "./PrepareMessage/eventNotification.js"
 
 
 export type requestMetadata = {
@@ -91,6 +92,10 @@ export class WabaSender {
 
     async sendLanguageChanged(context: requestMetadata & { userData?: any }) {
         return this.sendMessage(prepareLanguageChanged(this.to, this.lang, context))
+    }
+
+    async sendEventNotification(context: requestMetadata & { title: string, description: string }) {
+        return this.sendMessage(prepareEventNotification(this.to, this.lang, context))
     }
 
 }

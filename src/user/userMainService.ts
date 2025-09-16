@@ -35,6 +35,28 @@ export class User {
         return this.wabaSender
     }
 
+    private async emitEvent(category: 'email' | 'phone' | 'user' | 'payment' | 'system' | 'notification' | 'info' | 'warning' | 'success' | 'error', title: string, description: string) {
+        const id = this.c.env.EVENT_LOG.idFromName(this.userId)
+        const stub = this.c.env.EVENT_LOG.get(id)
+        await stub.fetch('https://do/event-log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, description, category })
+        })
+
+        // Attempt to notify user via WABA if we can
+        try {
+            if (!this.wabaSender) {
+                await this.initWabaSender()
+            }
+            if (this.wabaSender) {
+                await this.wabaSender.sendEventNotification({ title, description, frontendUrl: this.c.env.FRONTEND_ORIGIN })
+            }
+        } catch (err) {
+            console.error('Failed to send WABA event notification:', err)
+        }
+    }
+
     async getUser() {
         console.log('Getting user data for user ID:', this.userId)
         const id = this.c.env.USER_DIRECTORY.idFromName(this.userId)
@@ -60,6 +82,7 @@ export class User {
         const id = this.c.env.USER_DIRECTORY.idFromName(this.userId)
         const stub = this.c.env.USER_DIRECTORY.get(id)
         await stub.fetch('https://do/user-directory', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(user) })
+        await this.emitEvent('user', 'User name updated', `User name set to ${userName}`)
     }
 
     async setUserLanguage(language: string) {
@@ -72,6 +95,7 @@ export class User {
             this.wabaSender.setLang(language)
             this.wabaSender.sendLanguageChanged({userData: user, replyToMessageId: "", frontendUrl: this.c.env.FRONTEND_ORIGIN})
         }
+        await this.emitEvent('user', 'Language updated', `Language set to ${language}`)
         return null
     }
 
@@ -83,6 +107,7 @@ export class User {
         const id = this.c.env.USER_DIRECTORY.idFromName(this.userId)
         const stub = this.c.env.USER_DIRECTORY.get(id)
         await stub.fetch('https://do/user-directory', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(user) })
+        await this.emitEvent('phone', 'Phone updated', `Phone set to ${user.phoneNumber}`)
     }
 
     async createSyncCode(): Promise<string> {
@@ -107,6 +132,7 @@ export class User {
         const id = this.c.env.USER_DIRECTORY.idFromName(this.userId)
         const stub = this.c.env.USER_DIRECTORY.get(id)
         await stub.fetch('https://do/user-directory', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(user) })
+        await this.emitEvent('phone', 'Sync code generated', `Code generated for ${user.phoneNumber}`)
         return user.lastSyncCode
     }
 
@@ -119,6 +145,7 @@ export class User {
                 const id = this.c.env.USER_DIRECTORY.idFromName(this.userId)
                 const stub = this.c.env.USER_DIRECTORY.get(id)
                 await stub.fetch('https://do/user-directory', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(user) })
+                await this.emitEvent('phone', 'Sync code revoked', `Code revoked for ${user.phoneNumber}`)
             }
             return true
         } else {
@@ -148,6 +175,7 @@ export class User {
                 console.log('Phone verified, user data:', user)
                 console.log('Revoking sync code')
                 await this.revokeSyncCode()
+                await this.emitEvent('phone', 'Phone verified', `Phone ${user.phoneNumber} verified`)
                 return true
             }
             else {
@@ -165,6 +193,7 @@ export class User {
         const id = this.c.env.USER_DIRECTORY.idFromName(this.userId)
         const stub = this.c.env.USER_DIRECTORY.get(id)
         await stub.fetch('https://do/user-directory', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(user) })
+        await this.emitEvent('email', 'Allowed emails updated', `Allowed emails set (${allowedEmails.length})`)
     }
 
     async setConfirmedEmails(confirmedEmails: string[]) {
@@ -173,5 +202,6 @@ export class User {
         const id = this.c.env.USER_DIRECTORY.idFromName(this.userId)
         const stub = this.c.env.USER_DIRECTORY.get(id)
         await stub.fetch('https://do/user-directory', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(user) })
+        await this.emitEvent('email', 'Confirmed emails updated', `Confirmed emails set (${confirmedEmails.length})`)
     }
 }

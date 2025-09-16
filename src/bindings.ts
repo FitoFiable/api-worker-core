@@ -7,6 +7,7 @@ export type Bindings = {
     PHONE_DIRECTORY: DurableObjectNamespace
     SYNC_CODE_REGISTRY: DurableObjectNamespace
     USER_DIRECTORY: DurableObjectNamespace
+    EVENT_LOG: DurableObjectNamespace
     
     // VARIABLES: SE REGISTRAN EN EL ARCHIVO wrangler.jsonc
     FRONTEND_ORIGIN: string
