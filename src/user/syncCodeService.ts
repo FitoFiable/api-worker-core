@@ -97,6 +97,8 @@ export class SyncCodeService {
         }
     }
 
+    
+
     async revokeSyncCode(code: string, phoneNumber: string): Promise<boolean> {
         try {
             await this.c.env.FITOFIABLE_KV.delete(`syncCode/${code}-${phoneNumber}`)

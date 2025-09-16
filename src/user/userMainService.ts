@@ -77,15 +77,25 @@ export class User {
 
     async createSyncCode(): Promise<string> {
         const user = await this.getUser()
-        if (user.phoneNumber) {
-            if (user.lastSyncCode) {
-                await this.revokeSyncCode()
-            }
-            user.lastSyncCode = await this.syncCodeService.generateSyncCode(this.userId, user.phoneNumber)
-            return user.lastSyncCode
-        } else {
+        if (!user.phoneNumber) {
             throw new Error('Phone number not set')
         }
+
+        // If there's an existing sync code, validate it first
+        if (user.lastSyncCode) {
+            const validationResult = await this.syncCodeService.validateSyncCode(user.lastSyncCode, user.phoneNumber)
+            if (validationResult.isValid) {
+                // Code is still valid, return existing code
+                return user.lastSyncCode
+            }
+            // Code is expired or invalid, revoke it
+            await this.revokeSyncCode()
+        }
+
+        // Generate new code
+        user.lastSyncCode = await this.syncCodeService.generateSyncCode(this.userId, user.phoneNumber)
+        await this.c.env.FITOFIABLE_KV.put(`user/${this.userId}`, JSON.stringify(user))
+        return user.lastSyncCode
     }
 
     async revokeSyncCode(): Promise<boolean> {

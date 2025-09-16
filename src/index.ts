@@ -26,8 +26,14 @@ export type Variables = {
 export type honoContext = { Bindings: Bindings, Variables: Variables }
 
 const app = new Hono<honoContext>()
-
-
+// app.use('*', async (c, next) => {
+//   console.log('Request received')
+  
+//   // Simulate network delay
+//   await new Promise(resolve => setTimeout(resolve, 2000))
+  
+//   await next()
+// })
 
 // CORS for UI dev server and production
 app.use('*', cors({
