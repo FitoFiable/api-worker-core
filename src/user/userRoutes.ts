@@ -72,11 +72,13 @@ userRoutes.post('/syncCode/revoke', async (c) => {
   await user.revokeSyncCode()
   return c.json({ message: 'Sync code revoked successfully' }, 200)
 })
-
 userRoutes.post('/language', async (c) => {
   const user = c.get('user') as User
   const { language } = await c.req.json()
-  await user.setUserLanguage(language)
+  
+  // Execute in background without awaiting
+  c.executionCtx.waitUntil(user.setUserLanguage(language))
+  
   return c.json({ message: 'Language set successfully' }, 200)
 })
 

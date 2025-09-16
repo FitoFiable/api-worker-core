@@ -16,16 +16,21 @@ export class User {
         this.userId = userId
         this.syncCodeService = new SyncCodeService(c)
         this.phoneService = new PhoneService(c)
-        void this.initWabaSender()
+        // Initialize WabaSender asynchronously in constructor
+        this.initWabaSender().catch(err => {
+            console.error('Failed to initialize WabaSender:', err)
+        })
     }
 
     async initWabaSender(): Promise<WabaSender | null> {
         const user = await this.getUser()
 
         if (!user.phoneVerified || !user.phoneNumber) {
+            this.wabaSender = null
             return null
         }
-        const language = user.language ? user.language : 'en'
+
+        const language = user.language ?? 'en'
         this.wabaSender = new WabaSender(user.phoneNumber, language, this.c.env.WABA_WORKER_URL)
         return this.wabaSender
     }
