@@ -76,7 +76,14 @@
           { "name": "PHONE_DIRECTORY", "class_name": "PhoneDirectoryStaging" },
           { "name": "SYNC_CODE_REGISTRY", "class_name": "SyncCodeRegistryStaging" }
         ]
-      }
+      },
+      "migrations": [
+        { "tag": "v1-staging-do", "new_classes": [
+          "EmailDirectoryStaging",
+          "PhoneDirectoryStaging",
+          "SyncCodeRegistryStaging"
+        ] }
+      ]
     },
     "production": {
       "name": "fitofiable-api-worker-core-production",
@@ -109,7 +116,14 @@
           { "name": "PHONE_DIRECTORY", "class_name": "PhoneDirectoryProduction" },
           { "name": "SYNC_CODE_REGISTRY", "class_name": "SyncCodeRegistryProduction" }
         ]
-      }
+      },
+      "migrations": [
+        { "tag": "v1-production-do", "new_classes": [
+          "EmailDirectoryProduction",
+          "PhoneDirectoryProduction",
+          "SyncCodeRegistryProduction"
+        ] }
+      ]
     }
   }
 }
