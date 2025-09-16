@@ -46,6 +46,7 @@ export class User {
             return emptyUserData
         }
         
+        
         return JSON.parse(user)
     }
 
@@ -130,5 +131,17 @@ export class User {
         }
         console.log('No phone number found')
         return false
+    }
+
+    async setAllowedEmails(allowedEmails: string[]) {
+        const user = await this.getUser()
+        user.allowedEmails = allowedEmails
+        await this.c.env.FITOFIABLE_KV.put(`user/${this.userId}`, JSON.stringify(user))
+    }
+
+    async setConfirmedEmails(confirmedEmails: string[]) {
+        const user = await this.getUser()
+        user.confirmedEmails = confirmedEmails
+        await this.c.env.FITOFIABLE_KV.put(`user/${this.userId}`, JSON.stringify(user))
     }
 }

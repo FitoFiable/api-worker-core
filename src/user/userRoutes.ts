@@ -80,6 +80,14 @@ userRoutes.post('/language', async (c) => {
   return c.json({ message: 'Language set successfully' }, 200)
 })
 
+userRoutes.post('/allowedEmails', async (c) => {
+  const user = c.get('user') as User
+  const { allowedEmails } = await c.req.json()
+  await user.setAllowedEmails(allowedEmails)
+  return c.json({ message: 'Allowed emails set successfully' }, 200)
+})
+
+
 
 
 
