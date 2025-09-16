@@ -13,6 +13,8 @@ import { prepareUnableToVerify } from "./PrepareMessage/unableToVerify.js"
 import { prepareHelloVerified } from "./PrepareMessage/helloVerified.js"
 import { prepareLanguageChanged } from "./PrepareMessage/languageChanged.js"
 import { prepareEventNotification } from "./PrepareMessage/eventNotification.js"
+import { prepareTransactionParsed } from "./PrepareMessage/transactionParsed.js"
+import { prepareNotUnderstood } from "./PrepareMessage/notUnderstood.js"
 
 
 export type requestMetadata = {
@@ -96,6 +98,14 @@ export class WabaSender {
 
     async sendEventNotification(context: requestMetadata & { title: string, description: string }) {
         return this.sendMessage(prepareEventNotification(this.to, this.lang, context))
+    }
+
+    async sendTransactionParsed(context: requestMetadata & { count: number, originalMessage?: string, items?: { type: string, amount: number, description: string }[] }) {
+        return this.sendMessage(prepareTransactionParsed(this.to, this.lang, context))
+    }
+
+    async sendNotUnderstood(context: requestMetadata) {
+        return this.sendMessage(prepareNotUnderstood(this.to, this.lang, context))
     }
 
 }

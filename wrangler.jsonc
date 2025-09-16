@@ -36,7 +36,8 @@
       { "name": "PHONE_DIRECTORY", "class_name": "PhoneDirectoryDevelopment" },
       { "name": "SYNC_CODE_REGISTRY", "class_name": "SyncCodeRegistryDevelopment" },
       { "name": "USER_DIRECTORY", "class_name": "UserDirectoryDevelopment" },
-      { "name": "EVENT_LOG", "class_name": "EventLogDevelopment" }
+      { "name": "EVENT_LOG", "class_name": "EventLogDevelopment" },
+      { "name": "TRANSACTION_LOG", "class_name": "TransactionLogDevelopment" }
     ]
   },
 
@@ -78,7 +79,8 @@
           { "name": "PHONE_DIRECTORY", "class_name": "PhoneDirectoryStaging" },
           { "name": "SYNC_CODE_REGISTRY", "class_name": "SyncCodeRegistryStaging" },
           { "name": "USER_DIRECTORY", "class_name": "UserDirectoryStaging" },
-          { "name": "EVENT_LOG", "class_name": "EventLogStaging" }
+          { "name": "EVENT_LOG", "class_name": "EventLogStaging" },
+          { "name": "TRANSACTION_LOG", "class_name": "TransactionLogStaging" }
         ]
       },
       "migrations": [
@@ -92,6 +94,9 @@
       },
       { "tag": "v2-staging-user-directory", "new_classes": [
         "UserDirectoryStaging"
+      ] },
+      { "tag": "v3-staging-transaction-log", "new_classes": [
+        "TransactionLogStaging"
       ] }
       ]
     },
@@ -126,7 +131,8 @@
           { "name": "PHONE_DIRECTORY", "class_name": "PhoneDirectoryProduction" },
           { "name": "SYNC_CODE_REGISTRY", "class_name": "SyncCodeRegistryProduction" },
           { "name": "USER_DIRECTORY", "class_name": "UserDirectoryProduction" },
-          { "name": "EVENT_LOG", "class_name": "EventLogProduction" }
+          { "name": "EVENT_LOG", "class_name": "EventLogProduction" },
+          { "name": "TRANSACTION_LOG", "class_name": "TransactionLogProduction" }
         ]
       },
       "migrations": [
@@ -139,6 +145,9 @@
         ] },
         { "tag": "v2-production-user-directory", "new_classes": [
           "UserDirectoryProduction"
+        ] },
+        { "tag": "v3-production-transaction-log", "new_classes": [
+          "TransactionLogProduction"
         ] }
       ]
     }

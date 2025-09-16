@@ -5,6 +5,7 @@ import { honoContext } from '../index.js'
 
 import { SyncCodeService } from './syncCodeService.js'
 import type { UserEvent } from '../do/EventLog.js'
+import type { UserTransaction } from '../do/TransactionLog.js'
 
 const userRoutes = new Hono<honoContext>()
 
@@ -63,6 +64,34 @@ userRoutes.get('/events', async (c) => {
   } catch (error) {
     console.error('Error fetching events:', error)
     return c.json({ events: [], nextCursor: null, total: 0 }, 200)
+  }
+})
+
+// Transactions
+userRoutes.get('/transactions', async (c) => {
+  const user = c.get('user') as User
+  try {
+    const limit = c.req.query('limit') ? parseInt(c.req.query('limit')!) : undefined
+    const cursor = c.req.query('cursor') ? parseInt(c.req.query('cursor')!) : undefined
+    const body = await user.getTransactions({ limit, cursor: cursor ?? null })
+    return c.json(body, 200)
+  } catch (error) {
+    console.error('Error fetching transactions:', error)
+    return c.json({ transactions: [], nextCursor: null, total: 0 }, 200)
+  }
+})
+
+userRoutes.post('/transactions', async (c) => {
+  const user = c.get('user') as User
+  const payload = await c.req.json() as { transaction?: UserTransaction, transactions?: UserTransaction[] }
+  try {
+    const toAdd = payload.transactions ?? (payload.transaction ? [payload.transaction] : [])
+    if (!toAdd.length) return c.json({ message: 'No transactions provided' }, 400)
+    const res = await user.addTransactions(toAdd)
+    return c.json({ message: 'Transactions added', ...res }, 200)
+  } catch (error) {
+    console.error('Error adding transactions:', error)
+    return c.json({ message: 'Failed to add transactions' }, 500)
   }
 })
 

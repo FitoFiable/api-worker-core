@@ -7,6 +7,8 @@ import { SyncCodeService } from '../user/syncCodeService.js'
 import { User } from '../user/userMainService.js'
 import { PhoneService } from '../user/phoneService.js'
 import { getLanguageByPhoneNumber } from './waba/getLanguageByPhoneNumber.js'
+import { GoogleGenAI } from '@google/genai'
+import type { UserTransaction } from '@/do/TransactionLog.js'
 
 const eventHandlerRoutes = new Hono<honoContext>()
 
@@ -68,6 +70,67 @@ eventHandlerRoutes.post('/standarizedInput', async (c) => {
           sender.setLang(userData.language)
         }
         wabaResponse = await sender.sendHelloVerified({userData,replyToMessageId: messageReceived.asociatedMessageId, frontendUrl: c.env.FRONTEND_ORIGIN})
+
+        // Try to parse transactions from the incoming message using AI
+        try {
+          const genai = new GoogleGenAI({ apiKey: c.env.GEMINI_API_KEY })
+          const system = `You are a transaction extractor. Given a user natural language message, extract zero or more transactions as strict JSON with the following TypeScript type:
+type UserTransaction = { id: string; type: 'expense' | 'income' | 'transfer'; amount: number; description: string; category: string; date: string; time: string; location?: string; method: 'card' | 'cash' | 'transfer' | 'whatsapp'; status: 'completed' | 'pending' | 'failed' }.
+Rules:
+- currency is COP unless explicitly stated; numbers like 45k => 45000.
+- If not explicit, infer 'status' as 'completed' and 'method' as 'whatsapp'.
+- 'date' and 'time' default to now in the user's timezone (ISO: yyyy-mm-dd and HH:MM 24h).
+- Keep 'description' concise; infer a simple 'category'.
+- Always return JSON: { transactions: UserTransaction[] } and nothing else.`
+          const input = messageReceived.content
+          const now = new Date()
+          const res = await genai.models.generateContent({
+            model: 'gemini-1.5-flash',
+            contents: [{ role: 'user', parts: [{ text: `${system}\n\nNow: ${now.toISOString()}\nMessage: ${input}` }] }]
+          })
+          const text = res.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+          let parsed: { transactions: UserTransaction[] } | null = null
+          try {
+            parsed = JSON.parse(text)
+          } catch {
+            // try to salvage JSON if model added code fences
+            const match = text.match(/\{[\s\S]*\}/)
+            if (match) {
+              parsed = JSON.parse(match[0])
+            }
+          }
+          if (parsed && Array.isArray(parsed.transactions) && parsed.transactions.length > 0) {
+            // normalize fields and sign conventions
+            const normalized: UserTransaction[] = parsed.transactions.map(t => ({
+              id: t.id || crypto.randomUUID(),
+              type: t.type,
+              amount: t.type === 'expense' ? -Math.abs(t.amount) : Math.abs(t.amount),
+              description: t.description,
+              category: t.category,
+              date: t.date,
+              time: t.time,
+              location: t.location,
+              method: t.method ?? 'whatsapp',
+              status: t.status ?? 'completed'
+            }))
+            await user.addTransactions(normalized)
+            // send success confirmation via WABA with preview
+            await sender.sendTransactionParsed({ 
+              replyToMessageId: messageReceived.asociatedMessageId, 
+              frontendUrl: c.env.FRONTEND_ORIGIN, 
+              count: normalized.length,
+              originalMessage: messageReceived.content,
+              items: normalized.map(n => ({ type: n.type, amount: n.amount, description: n.description }))
+            })
+          } else {
+            // send not-understood hint
+            await sender.sendNotUnderstood({ replyToMessageId: messageReceived.asociatedMessageId, frontendUrl: c.env.FRONTEND_ORIGIN })
+          }
+        } catch (err) {
+          console.error('AI parsing failed:', err)
+          // failure: inform user
+          try { await sender.sendNotUnderstood({ replyToMessageId: messageReceived.asociatedMessageId, frontendUrl: c.env.FRONTEND_ORIGIN }) } catch {}
+        }
       } else {
         // Treat as unverified
         const language = getLanguageByPhoneNumber(messageReceived.sender)

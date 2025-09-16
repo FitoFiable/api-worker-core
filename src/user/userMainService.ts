@@ -4,6 +4,7 @@ import { SyncCodeService, SyncCodeValidationResult } from "./syncCodeService.js"
 import { PhoneService } from "./phoneService.js";
 import { WabaSender } from "@/eventHandler/waba/wabaService.js";
 import type { userKV } from "./userKV.types.js";
+import type { UserTransaction } from "@/do/TransactionLog.js";
 
 export class User {
     private readonly c: Context<honoContext>
@@ -203,5 +204,31 @@ export class User {
         const stub = this.c.env.USER_DIRECTORY.get(id)
         await stub.fetch('https://do/user-directory', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(user) })
         await this.emitEvent('email', 'Confirmed emails updated', `Confirmed emails set (${confirmedEmails.length})`)
+    }
+
+    async addTransactions(transactions: UserTransaction[] | UserTransaction): Promise<{ added: number }>{
+        const list = Array.isArray(transactions) ? transactions : [transactions]
+        const id = this.c.env.TRANSACTION_LOG.idFromName(this.userId)
+        const stub = this.c.env.TRANSACTION_LOG.get(id)
+        const res = await stub.fetch('https://do/transaction-log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ transactions: list })
+        })
+        if (!res.ok) throw new Error(`TransactionLog DO error: ${res.status}`)
+        const body = await res.json() as { ok: boolean, added: number }
+        await this.emitEvent('payment', 'Transaction registered', `${list.length} transaction(s) added`)
+        return { added: body.added }
+    }
+
+    async getTransactions(opts?: { limit?: number, cursor?: number|null }): Promise<{ transactions: UserTransaction[], nextCursor: number | null, total: number }>{
+        const id = this.c.env.TRANSACTION_LOG.idFromName(this.userId)
+        const stub = this.c.env.TRANSACTION_LOG.get(id)
+        const params = new URLSearchParams()
+        if (opts?.limit) params.set('limit', String(opts.limit))
+        if (opts?.cursor != null) params.set('cursor', String(opts.cursor))
+        const res = await stub.fetch(`https://do/transaction-log${params.toString() ? `?${params.toString()}` : ''}`)
+        if (!res.ok) throw new Error(`TransactionLog DO error: ${res.status}`)
+        return await res.json() as { transactions: UserTransaction[], nextCursor: number | null, total: number }
     }
 }
