@@ -87,12 +87,12 @@ Rules:
         if (parsed && Array.isArray(parsed.transactions) && parsed.transactions.length > 0) {
             const normalized: UserTransaction[] = parsed.transactions.map(t => ({
                 id: t.id || crypto.randomUUID(),
-                type: t.type,
-                amount: t.type === 'expense' ? -Math.abs(t.amount) : Math.abs(t.amount),
-                description: t.description,
-                category: t.category,
-                date: t.date,
-                time: t.time,
+                type: t.type ?? 'expense',
+                amount: (t.type ?? 'expense') === 'expense' ? -Math.abs(t.amount ?? 0) : Math.abs(t.amount ?? 0),
+                description: t.description ?? '',
+                category: t.category ?? 'general',
+                date: t.date ?? new Date().toISOString().slice(0, 10),
+                time: t.time ?? new Date().toISOString().slice(11, 16),
                 location: t.location,
                 mediaUrl: undefined,
                 method: t.method ?? 'whatsapp',
@@ -103,7 +103,7 @@ Rules:
                 frontendUrl: c.env.FRONTEND_ORIGIN, 
                 count: normalized.length,
                 originalMessage: jsonEmail.body,
-                items: normalized.map(n => ({ type: n.type, amount: n.amount, description: n.description }))
+                items: normalized.map(n => ({ type: n.type ?? 'expense', amount: n.amount ?? 0, description: n.description ?? '' }))
             })
         } else {
             await sender.sendNotUnderstood({ frontendUrl: c.env.FRONTEND_ORIGIN })

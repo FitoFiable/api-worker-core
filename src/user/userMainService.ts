@@ -280,4 +280,37 @@ export class User {
         if (!res.ok) throw new Error(`TransactionLog DO error: ${res.status}`)
         return await res.json() as { transactions: UserTransaction[], nextCursor: number | null, total: number }
     }
+
+    async getTransactionsConfig(): Promise<{ categories: string[], budgets: Record<string, number> }>{
+        const id = this.c.env.TRANSACTION_LOG.idFromName(this.userId)
+        const stub = this.c.env.TRANSACTION_LOG.get(id)
+        const res = await stub.fetch('https://do/transaction-log/config')
+        if (!res.ok) throw new Error(`TransactionLog DO error: ${res.status}`)
+        return await res.json() as { categories: string[], budgets: Record<string, number> }
+    }
+
+    async setTransactionsConfig(config: Partial<{ categories: string[], budgets: Record<string, number> }>): Promise<{ categories: string[], budgets: Record<string, number> }>{
+        const id = this.c.env.TRANSACTION_LOG.idFromName(this.userId)
+        const stub = this.c.env.TRANSACTION_LOG.get(id)
+        const res = await stub.fetch('https://do/transaction-log/config', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config)
+        })
+        if (!res.ok) throw new Error(`TransactionLog DO error: ${res.status}`)
+        return await res.json() as { categories: string[], budgets: Record<string, number> }
+    }
+
+    async updateTransaction(id: string, patch: Partial<UserTransaction>): Promise<UserTransaction> {
+        const doId = this.c.env.TRANSACTION_LOG.idFromName(this.userId)
+        const stub = this.c.env.TRANSACTION_LOG.get(doId)
+        const params = new URLSearchParams({ id })
+        const res = await stub.fetch(`https://do/transaction-log?${params.toString()}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(patch)
+        })
+        if (!res.ok) throw new Error(`TransactionLog DO error: ${res.status}`)
+        return await res.json() as UserTransaction
+    }
 }

@@ -1,18 +1,22 @@
 export type UserTransaction = {
-  id: string
-  type: 'expense' | 'income' | 'transfer'
-  amount: number
-  description: string
-  category: string
-  date: string
-  time: string
+  id?: string
+  type?: 'expense' | 'income' | 'transfer'
+  amount?: number
+  description?: string
+  category?: string
+  date?: string
+  time?: string
   location?: string
   mediaUrl?: string
-  method: 'card' | 'cash' | 'transfer' | 'whatsapp'
-  status: 'completed' | 'pending' | 'failed'
+  method?: 'card' | 'cash' | 'transfer' | 'whatsapp'
+  status?: 'completed' | 'pending' | 'failed'
 }
 
 type ListResponse = { transactions: UserTransaction[], nextCursor: number | null, total: number }
+type TransactionsConfig = { categories: string[], budgets: Record<string, number> }
+const DEFAULT_CATEGORIES: string[] = [
+  'Food & Dining', 'Transportation', 'Shopping', 'Healthcare', 'Entertainment', 'Bills & Utilities', 'Salary', 'Transfer'
+]
 
 class TransactionLogBase {
   state: DurableObjectState
@@ -24,7 +28,29 @@ class TransactionLogBase {
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url)
     const method = request.method.toUpperCase()
+    const pathname = url.pathname
 
+    // Config endpoints: GET/PUT https://do/transaction-log/config
+    if (pathname.endsWith('/config')) {
+      if (method === 'GET') {
+        const current = (await this.state.storage.get<TransactionsConfig>('config')) ?? { categories: DEFAULT_CATEGORIES, budgets: {} }
+        return new Response(JSON.stringify(current), { status: 200, headers: { 'Content-Type': 'application/json' } })
+      }
+      if (method === 'PUT') {
+        const body = await request.json().catch(() => null) as Partial<TransactionsConfig> | null
+        if (!body) return new Response('Invalid body', { status: 400 })
+        const prev = (await this.state.storage.get<TransactionsConfig>('config')) ?? { categories: DEFAULT_CATEGORIES, budgets: {} }
+        const merged: TransactionsConfig = {
+          categories: Array.isArray(body.categories) && body.categories.length ? Array.from(new Set(body.categories)) : prev.categories,
+          budgets: typeof body.budgets === 'object' && body.budgets ? body.budgets as Record<string, number> : prev.budgets
+        }
+        await this.state.storage.put('config', merged)
+        return new Response(JSON.stringify(merged), { status: 200, headers: { 'Content-Type': 'application/json' } })
+      }
+      return new Response('Method Not Allowed', { status: 405 })
+    }
+
+    // Transaction list
     if (method === 'GET') {
       const limitParam = url.searchParams.get('limit')
       const cursorParam = url.searchParams.get('cursor')
@@ -60,6 +86,22 @@ class TransactionLogBase {
       const trimmed = list.slice(-2000)
       await this.state.storage.put('transactions', trimmed)
       return new Response(JSON.stringify({ ok: true, added: toAdd.length }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+    }
+
+    // Update a transaction (e.g., category) via PATCH https://do/transaction-log?id=...
+    if (method === 'PATCH') {
+      const id = url.searchParams.get('id')
+      if (!id) return new Response('Missing id', { status: 400 })
+      const body = await request.json().catch(() => null) as Omit<Partial<UserTransaction>, 'id'> | null
+      if (!body) return new Response('Invalid body', { status: 400 })
+      const list = (await this.state.storage.get<UserTransaction[]>('transactions')) ?? []
+      const idx = list.findIndex(t => t.id === id)
+      if (idx === -1) return new Response('Not found', { status: 404 })
+      // Don't allow changing id; also satisfy typing
+      const updated: UserTransaction = { ...list[idx], ...body }
+      list[idx] = updated
+      await this.state.storage.put('transactions', list)
+      return new Response(JSON.stringify(updated), { status: 200, headers: { 'Content-Type': 'application/json' } })
     }
 
     if (method === 'DELETE') {

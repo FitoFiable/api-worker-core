@@ -95,6 +95,34 @@ userRoutes.post('/transactions', async (c) => {
   }
 })
 
+// Transactions config (categories and budgets)
+userRoutes.get('/transactions/config', async (c) => {
+  const user = c.get('user') as User
+  try {
+    const config = await user.getTransactionsConfig()
+    return c.json(config, 200)
+  } catch (error) {
+    console.error('Error fetching transactions config:', error)
+    return c.json({ categories: [], budgets: {} }, 200)
+  }
+})
+
+userRoutes.post('/transactions/config', async (c) => {
+  const user = c.get('user') as User
+  const body = await c.req.json().catch(() => ({})) as Partial<{ categories: string[], budgets: Record<string, number> }>
+  const config = await user.setTransactionsConfig(body)
+  return c.json(config, 200)
+})
+
+// Update a single transaction (e.g., change category)
+userRoutes.patch('/transactions/:id', async (c) => {
+  const user = c.get('user') as User
+  const id = c.req.param('id')
+  const patch = await c.req.json().catch(() => ({}))
+  const updated = await user.updateTransaction(id, patch)
+  return c.json(updated, 200)
+})
+
 // Set user name
 userRoutes.post('/name', async (c) => {
   const user = c.get('user') as User

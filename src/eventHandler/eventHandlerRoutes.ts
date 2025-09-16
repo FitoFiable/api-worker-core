@@ -101,19 +101,24 @@ Rules:
           }
           if (parsed && Array.isArray(parsed.transactions) && parsed.transactions.length > 0) {
             // normalize fields and sign conventions
-            const normalized: UserTransaction[] = parsed.transactions.map(t => ({
-              id: t.id || crypto.randomUUID(),
-              type: t.type,
-              amount: t.type === 'expense' ? -Math.abs(t.amount) : Math.abs(t.amount),
-              description: t.description,
-              category: t.category,
-              date: t.date,
-              time: t.time,
-              location: t.location,
-              mediaUrl: messageReceived.associatedMediaUrl,
-              method: t.method ?? 'whatsapp',
-              status: t.status ?? 'completed'
-            }))
+            const normalized: UserTransaction[] = parsed.transactions.map(t => {
+              const rawAmount = Number.isFinite(t.amount as number) ? Number(t.amount) : 0
+              const inferredType = t.type ?? (rawAmount < 0 ? 'expense' : 'income')
+              const absAmount = Math.abs(rawAmount)
+              return {
+                id: t.id || crypto.randomUUID(),
+                type: inferredType,
+                amount: inferredType === 'expense' ? -absAmount : absAmount,
+                description: t.description ?? '',
+                category: t.category ?? 'general',
+                date: t.date ?? new Date().toISOString().slice(0,10),
+                time: t.time ?? new Date().toISOString().slice(11,16),
+                location: t.location,
+                mediaUrl: messageReceived.associatedMediaUrl,
+                method: (t.method ?? 'whatsapp'),
+                status: (t.status ?? 'completed')
+              }
+            })
             await user.addTransactions(normalized)
             // send success confirmation via WABA with preview
             await sender.sendTransactionParsed({ 
@@ -121,7 +126,7 @@ Rules:
               frontendUrl: c.env.FRONTEND_ORIGIN, 
               count: normalized.length,
               originalMessage: messageReceived.content,
-              items: normalized.map(n => ({ type: n.type, amount: n.amount, description: n.description }))
+              items: normalized.map(n => ({ type: String(n.type), amount: Number(n.amount), description: n.description ?? '' }))
             })
           } else {
             // send not-understood hint
