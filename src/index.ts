@@ -16,6 +16,7 @@ import { EmailService } from './user/emailService.js';
 export { EmailDirectoryDevelopment, EmailDirectoryStaging, EmailDirectoryProduction } from './do/EmailDirectory.js'
 export { PhoneDirectoryDevelopment, PhoneDirectoryStaging, PhoneDirectoryProduction } from './do/PhoneDirectory.js'
 export { SyncCodeRegistryDevelopment, SyncCodeRegistryStaging, SyncCodeRegistryProduction } from './do/SyncCodeRegistry.js'
+export { UserDirectoryDevelopment, UserDirectoryStaging, UserDirectoryProduction } from './do/UserDirectory.js'
 
 export type Variables = {
   gemini: GoogleGenAI

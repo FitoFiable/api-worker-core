@@ -34,7 +34,8 @@
     "bindings": [
       { "name": "EMAIL_DIRECTORY", "class_name": "EmailDirectoryDevelopment" },
       { "name": "PHONE_DIRECTORY", "class_name": "PhoneDirectoryDevelopment" },
-      { "name": "SYNC_CODE_REGISTRY", "class_name": "SyncCodeRegistryDevelopment" }
+      { "name": "SYNC_CODE_REGISTRY", "class_name": "SyncCodeRegistryDevelopment" },
+      { "name": "USER_DIRECTORY", "class_name": "UserDirectoryDevelopment" }
     ]
   },
 
@@ -74,14 +75,16 @@
         "bindings": [
           { "name": "EMAIL_DIRECTORY", "class_name": "EmailDirectoryStaging" },
           { "name": "PHONE_DIRECTORY", "class_name": "PhoneDirectoryStaging" },
-          { "name": "SYNC_CODE_REGISTRY", "class_name": "SyncCodeRegistryStaging" }
+          { "name": "SYNC_CODE_REGISTRY", "class_name": "SyncCodeRegistryStaging" },
+          { "name": "USER_DIRECTORY", "class_name": "UserDirectoryStaging" }
         ]
       },
       "migrations": [
         { "tag": "v1-staging-do", "new_classes": [
           "EmailDirectoryStaging",
           "PhoneDirectoryStaging",
-          "SyncCodeRegistryStaging"
+          "SyncCodeRegistryStaging",
+          "UserDirectoryStaging"
         ] }
       ]
     },
@@ -114,14 +117,16 @@
         "bindings": [
           { "name": "EMAIL_DIRECTORY", "class_name": "EmailDirectoryProduction" },
           { "name": "PHONE_DIRECTORY", "class_name": "PhoneDirectoryProduction" },
-          { "name": "SYNC_CODE_REGISTRY", "class_name": "SyncCodeRegistryProduction" }
+          { "name": "SYNC_CODE_REGISTRY", "class_name": "SyncCodeRegistryProduction" },
+          { "name": "USER_DIRECTORY", "class_name": "UserDirectoryProduction" }
         ]
       },
       "migrations": [
         { "tag": "v1-production-do", "new_classes": [
           "EmailDirectoryProduction",
           "PhoneDirectoryProduction",
-          "SyncCodeRegistryProduction"
+          "SyncCodeRegistryProduction",
+          "UserDirectoryProduction"
         ] }
       ]
     }

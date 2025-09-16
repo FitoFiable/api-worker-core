@@ -3,6 +3,7 @@ import { honoContext } from "@/index.js";
 import { SyncCodeService, SyncCodeValidationResult } from "./syncCodeService.js";
 import { PhoneService } from "./phoneService.js";
 import { WabaSender } from "@/eventHandler/waba/wabaService.js";
+import type { userKV } from "./userKV.types.js";
 
 export class User {
     private readonly c: Context<honoContext>
@@ -21,45 +22,47 @@ export class User {
     async initWabaSender(): Promise<WabaSender | null> {
         const user = await this.getUser()
 
-        if (user.phoneVerified) {
-            if (user.language ) {
-                this.wabaSender = new WabaSender(user.phoneNumber, user.language, this.c.env.WABA_WORKER_URL)
-                return this.wabaSender
-            }
-            else {
-                this.wabaSender = new WabaSender(user.phoneNumber, 'en', this.c.env.WABA_WORKER_URL)
-                return this.wabaSender
-            }
+        if (!user.phoneVerified || !user.phoneNumber) {
+            return null
         }
-        return null
+        const language = user.language ? user.language : 'en'
+        this.wabaSender = new WabaSender(user.phoneNumber, language, this.c.env.WABA_WORKER_URL)
+        return this.wabaSender
     }
 
     async getUser() {
         console.log('Getting user data for user ID:', this.userId)
-        let user = await this.c.env.FITOFIABLE_KV.get(`user/${this.userId}`)
-        
-        if (!user) {
-            // New user - create empty object in KV
+        const id = this.c.env.USER_DIRECTORY.idFromName(this.userId)
+        const stub = this.c.env.USER_DIRECTORY.get(id)
+        const res = await stub.fetch('https://do/user-directory')
+        if (res.status === 404) {
             console.log('New user detected, creating empty user data')
-            const emptyUserData = {}
-            await this.c.env.FITOFIABLE_KV.put(`user/${this.userId}`, JSON.stringify(emptyUserData))
+            const emptyUserData: userKV = {}
+            await stub.fetch('https://do/user-directory', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(emptyUserData)
+            })
             return emptyUserData
         }
-        
-        
-        return JSON.parse(user)
+        if (!res.ok) throw new Error(`UserDirectory DO error: ${res.status}`)
+        return await res.json() as userKV
     }
 
     async setUserName(userName: string) {
         const user = await this.getUser()
         user.userName = userName
-        await this.c.env.FITOFIABLE_KV.put(`user/${this.userId}`, JSON.stringify(user))
+        const id = this.c.env.USER_DIRECTORY.idFromName(this.userId)
+        const stub = this.c.env.USER_DIRECTORY.get(id)
+        await stub.fetch('https://do/user-directory', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(user) })
     }
 
     async setUserLanguage(language: string) {
         const user = await this.getUser()
         user.language = language
-        await this.c.env.FITOFIABLE_KV.put(`user/${this.userId}`, JSON.stringify(user))
+        const id = this.c.env.USER_DIRECTORY.idFromName(this.userId)
+        const stub = this.c.env.USER_DIRECTORY.get(id)
+        await stub.fetch('https://do/user-directory', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(user) })
         if (this.wabaSender) {
             this.wabaSender.setLang(language)
             this.wabaSender.sendLanguageChanged({userData: user, replyToMessageId: "", frontendUrl: this.c.env.FRONTEND_ORIGIN})
@@ -72,7 +75,9 @@ export class User {
         user.phoneNumber = phoneNumber.replace('+', '') // Remove + from phone number
         user.lastSyncCode = undefined
         user.phoneVerified = false
-        await this.c.env.FITOFIABLE_KV.put(`user/${this.userId}`, JSON.stringify(user))
+        const id = this.c.env.USER_DIRECTORY.idFromName(this.userId)
+        const stub = this.c.env.USER_DIRECTORY.get(id)
+        await stub.fetch('https://do/user-directory', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(user) })
     }
 
     async createSyncCode(): Promise<string> {
@@ -94,7 +99,9 @@ export class User {
 
         // Generate new code
         user.lastSyncCode = await this.syncCodeService.generateSyncCode(this.userId, user.phoneNumber)
-        await this.c.env.FITOFIABLE_KV.put(`user/${this.userId}`, JSON.stringify(user))
+        const id = this.c.env.USER_DIRECTORY.idFromName(this.userId)
+        const stub = this.c.env.USER_DIRECTORY.get(id)
+        await stub.fetch('https://do/user-directory', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(user) })
         return user.lastSyncCode
     }
 
@@ -104,7 +111,9 @@ export class User {
             if (user.lastSyncCode) {
                 await this.syncCodeService.revokeSyncCode(user.lastSyncCode, user.phoneNumber)
                 user.lastSyncCode = undefined
-                await this.c.env.FITOFIABLE_KV.put(`user/${this.userId}`, JSON.stringify(user))
+                const id = this.c.env.USER_DIRECTORY.idFromName(this.userId)
+                const stub = this.c.env.USER_DIRECTORY.get(id)
+                await stub.fetch('https://do/user-directory', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(user) })
             }
             return true
         } else {
@@ -128,7 +137,9 @@ export class User {
                 console.log('Validation successful, updating user data')
                 user.phoneVerified = true
                 await this.phoneService.assingUserToPhoneNumber(user.phoneNumber, this.userId)
-                await this.c.env.FITOFIABLE_KV.put(`user/${this.userId}`, JSON.stringify(user))
+                const id = this.c.env.USER_DIRECTORY.idFromName(this.userId)
+                const stub = this.c.env.USER_DIRECTORY.get(id)
+                await stub.fetch('https://do/user-directory', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(user) })
                 console.log('Phone verified, user data:', user)
                 console.log('Revoking sync code')
                 await this.revokeSyncCode()
@@ -146,12 +157,16 @@ export class User {
     async setAllowedEmails(allowedEmails: string[]) {
         const user = await this.getUser()
         user.allowedEmails = allowedEmails
-        await this.c.env.FITOFIABLE_KV.put(`user/${this.userId}`, JSON.stringify(user))
+        const id = this.c.env.USER_DIRECTORY.idFromName(this.userId)
+        const stub = this.c.env.USER_DIRECTORY.get(id)
+        await stub.fetch('https://do/user-directory', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(user) })
     }
 
     async setConfirmedEmails(confirmedEmails: string[]) {
         const user = await this.getUser()
         user.confirmedEmails = confirmedEmails
-        await this.c.env.FITOFIABLE_KV.put(`user/${this.userId}`, JSON.stringify(user))
+        const id = this.c.env.USER_DIRECTORY.idFromName(this.userId)
+        const stub = this.c.env.USER_DIRECTORY.get(id)
+        await stub.fetch('https://do/user-directory', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(user) })
     }
 }

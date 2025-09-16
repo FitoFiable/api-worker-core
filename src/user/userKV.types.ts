@@ -4,4 +4,6 @@ export type userKV = {
     lastSyncCode?: string
     phoneVerified?: boolean
     allowedEmails?: string[]
+    confirmedEmails?: string[]
+    language?: string
 }
