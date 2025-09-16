@@ -127,6 +127,9 @@
           "PhoneDirectoryProduction",
           "SyncCodeRegistryProduction",
           "UserDirectoryProduction"
+        ] },
+        { "tag": "v2-production-user-directory", "new_classes": [
+          "UserDirectoryProduction"
         ] }
       ]
     }
