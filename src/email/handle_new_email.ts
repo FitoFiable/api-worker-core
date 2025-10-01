@@ -58,7 +58,7 @@ export const handleNewEmail = async (jsonEmail: EmailData, c: Context<honoContex
 
         const lang = (userData.language || 'en')
         const sender = new WabaSender(userData.phoneNumber, lang, c.env.WABA_WORKER_URL)
-
+ 
         // Use AI to parse transactions from the email content
         const genai = new GoogleGenAI({ apiKey: c.env.GEMINI_API_KEY })
         const system = `You are a transaction extractor. Given an email text, extract zero or more transactions as strict JSON with the following TypeScript type:
@@ -72,7 +72,7 @@ Rules:
         const input = `Subject: ${jsonEmail.subject}\nFrom: ${fromEmail}\n\n${jsonEmail.body}`
         const now = new Date()
         const res = await genai.models.generateContent({
-            model: 'gemini-1.5-flash',
+            model: 'gemini-2.5-flash',
             contents: [{ role: 'user', parts: [{ text: `${system}\n\nNow: ${now.toISOString()}\nEmail:\n${input}` }] }]
         })
         const text = res.candidates?.[0]?.content?.parts?.[0]?.text ?? ''

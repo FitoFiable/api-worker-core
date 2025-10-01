@@ -85,7 +85,7 @@ Rules:
           const input = messageReceived.content
           const now = new Date()
           const res = await genai.models.generateContent({
-            model: 'gemini-1.5-flash',
+            model: 'gemini-2.5-flash',
             contents: [{ role: 'user', parts: [{ text: `${system}\n\nNow: ${now.toISOString()}\nMessage: ${input}` }] }]
           })
           const text = res.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
